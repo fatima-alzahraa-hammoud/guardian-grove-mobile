@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'app/app.dart';
+import 'core/network/api_client.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize API client
+  ApiClient().init();
   
   // Set up BLoC observer for debugging
   Bloc.observer = SimpleBlocObserver();

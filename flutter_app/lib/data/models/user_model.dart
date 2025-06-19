@@ -1,0 +1,216 @@
+import 'package:equatable/equatable.dart';
+
+class UserModel extends Equatable {
+  final String id;
+  final String name;
+  final String email;
+  final DateTime birthday;
+  final String dailyMessage;
+  final String gender;
+  final String role;
+  final String avatar;
+  final List<String> interests;
+  final DateTime memberSince;
+  final String currentLocation;
+  final int stars;
+  final int coins;
+  final int nbOfTasksCompleted;
+  final int rankInFamily;
+  final String? familyId;
+  final bool isTempPassword;
+
+  const UserModel({
+    required this.id,
+    required this.name,
+    required this.email,
+    required this.birthday,
+    required this.dailyMessage,
+    required this.gender,
+    required this.role,
+    required this.avatar,
+    required this.interests,
+    required this.memberSince,
+    required this.currentLocation,
+    required this.stars,
+    required this.coins,
+    required this.nbOfTasksCompleted,
+    required this.rankInFamily,
+    this.familyId,
+    this.isTempPassword = false,
+  });
+
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    return UserModel(
+      id: json['_id'] ?? '',
+      name: json['name'] ?? '',
+      email: json['email'] ?? '',
+      birthday: DateTime.parse(json['birthday']),
+      dailyMessage: json['dailyMessage'] ?? 'You are shining💫!',
+      gender: json['gender'] ?? '',
+      role: json['role'] ?? '',
+      avatar: json['avatar'] ?? '',
+      interests: List<String>.from(json['interests'] ?? []),
+      memberSince: DateTime.parse(json['memberSince']),
+      currentLocation: json['currentLocation'] ?? 'not specified',
+      stars: json['stars'] ?? 0,
+      coins: json['coins'] ?? 0,
+      nbOfTasksCompleted: json['nbOfTasksCompleted'] ?? 0,
+      rankInFamily: json['rankInFamily'] ?? 0,
+      familyId: json['familyId'],
+      isTempPassword: json['isTempPassword'] ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '_id': id,
+      'name': name,
+      'email': email,
+      'birthday': birthday.toIso8601String(),
+      'dailyMessage': dailyMessage,
+      'gender': gender,
+      'role': role,
+      'avatar': avatar,
+      'interests': interests,
+      'memberSince': memberSince.toIso8601String(),
+      'currentLocation': currentLocation,
+      'stars': stars,
+      'coins': coins,
+      'nbOfTasksCompleted': nbOfTasksCompleted,
+      'rankInFamily': rankInFamily,
+      'familyId': familyId,
+      'isTempPassword': isTempPassword,
+    };
+  }
+
+  @override
+  List<Object?> get props => [
+        id,
+        name,
+        email,
+        birthday,
+        dailyMessage,
+        gender,
+        role,
+        avatar,
+        interests,
+        memberSince,
+        currentLocation,
+        stars,
+        coins,
+        nbOfTasksCompleted,
+        rankInFamily,
+        familyId,
+        isTempPassword,
+      ];
+}
+
+// Request models for login and register
+class LoginRequest extends Equatable {
+  final String name;
+  final String email;
+  final String password;
+
+  const LoginRequest({
+    required this.name,
+    required this.email,
+    required this.password,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'email': email,
+      'password': password,
+    };
+  }
+
+  @override
+  List<Object> get props => [name, email, password];
+}
+
+class RegisterRequest extends Equatable {
+  final String name;
+  final String email;
+  final String password;
+  final String confirmPassword;
+  final DateTime birthday;
+  final String gender;
+  final String role;
+  final String avatar;
+  final List<String> interests;
+  final String familyName;
+  final String familyAvatar;
+
+  const RegisterRequest({
+    required this.name,
+    required this.email,
+    required this.password,
+    required this.confirmPassword,
+    required this.birthday,
+    required this.gender,
+    required this.role,
+    required this.avatar,
+    required this.interests,
+    required this.familyName,
+    required this.familyAvatar,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'email': email,
+      'password': password,
+      'confirmPassword': confirmPassword,
+      'birthday': birthday.toIso8601String(),
+      'gender': gender,
+      'role': role,
+      'avatar': avatar,
+      'interests': interests,
+      'familyName': familyName,
+      'familyAvatar': familyAvatar,
+    };
+  }
+
+  @override
+  List<Object> get props => [
+        name,
+        email,
+        password,
+        confirmPassword,
+        birthday,
+        gender,
+        role,
+        avatar,
+        interests,
+        familyName,
+        familyAvatar,
+      ];
+}
+
+// Response model for login/register
+class AuthResponse extends Equatable {
+  final UserModel user;
+  final String token;
+  final bool requiresPasswordChange;
+  final String message;
+
+  const AuthResponse({
+    required this.user,
+    required this.token,
+    required this.requiresPasswordChange,
+    required this.message,
+  });
+
+  factory AuthResponse.fromJson(Map<String, dynamic> json) {
+    return AuthResponse(
+      user: UserModel.fromJson(json['user']),
+      token: json['token'] ?? '',
+      requiresPasswordChange: json['requiresPasswordChange'] ?? false,
+      message: json['message'] ?? '',
+    );
+  }
+
+  @override
+  List<Object> get props => [user, token, requiresPasswordChange, message];
+}
