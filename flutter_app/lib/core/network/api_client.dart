@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../constants/app_constants.dart';
+import '../services/storage_service.dart';
 
 class ApiClient {
   static final ApiClient _instance = ApiClient._internal();
@@ -98,17 +99,21 @@ class ApiClient {
 class AuthInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    // TODO: Add token to headers when we implement storage
-    // final token = await StorageService.getToken();
-    // if (token != null) {
-    //   options.headers['Authorization'] = 'Bearer $token';
-    // }
+    // Add token to headers if available
+    final token = StorageService.getToken();
+    if (token != null && token.isNotEmpty) {
+      options.headers['Authorization'] = 'Bearer $token';
+    }
     handler.next(options);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    // Handle auth errors (401) here later
+    // Handle auth errors (401) - could trigger logout
+    if (err.response?.statusCode == 401) {
+      // Token might be expired, could clear storage here
+      StorageService.clearAll();
+    }
     handler.next(err);
   }
 }
