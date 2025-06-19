@@ -1,0 +1,59 @@
+name: Flutter CI
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    # Cache pub dependencies
+    - name: Cache pub dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.pub-cache
+          ./flutter_app/.dart_tool
+        key: ${{ runner.os }}-pub-cache-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-pub-cache-
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.29.0'
+        cache: true
+        cache-key: 'flutter-:os:-:channel:-:version:-:arch:'
+    
+    - name: Get dependencies
+      run: flutter pub get
+      working-directory: ./flutter_app
+    
+    - name: Verify the installation
+      run: flutter doctor -v
+      working-directory: ./flutter_app
+    
+    - name: Run analyzer
+      run: flutter analyze
+      working-directory: ./flutter_app
+    
+    # - name: Run tests
+    #   run: flutter test
+    #   working-directory: ./flutter_app
+    
+    # Build debug APK instead (much faster)
+    - name: Build APK (Debug - Faster)
+      run: flutter build apk --debug
+      working-directory: ./flutter_app
+    
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: flutter-apk-debug
+        path: ./flutter_app/build/app/outputs/flutter-apk/app-debug.apk
