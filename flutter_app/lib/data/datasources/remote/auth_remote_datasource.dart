@@ -15,21 +15,50 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   AuthRemoteDataSourceImpl(this._apiClient);
 
+  // Helper method to extract error message from response
+  String _extractErrorMessage(
+    Map<String, dynamic>? responseData,
+    String defaultMessage,
+  ) {
+    if (responseData == null) return defaultMessage;
+    return responseData['error'] ??
+        responseData['message'] ??
+        responseData['detail'] ??
+        defaultMessage;
+  }
+
   @override
   Future<AuthResponse> login(LoginRequest request) async {
     try {
+      print(
+        '🚀 Sending login request to: ${AppConstants.baseUrl}${AppConstants.loginEndpoint}',
+      );
+      print('📝 Request data: ${request.toJson()}');
+
       final response = await _apiClient.post(
         AppConstants.loginEndpoint,
         data: request.toJson(),
       );
 
+      print('📡 Response status: ${response.statusCode}');
+      print('📄 Response data: ${response.data}');
+
       if (response.statusCode == 200) {
         return AuthResponse.fromJson(response.data);
       } else {
-        throw ServerException(
-          response.data['message'] ?? 'Login failed',
-          statusCode: response.statusCode,
+        // Handle non-200 status codes from server
+        String errorMessage = 'Login failed';
+        if (response.data != null) {
+          errorMessage =
+              response.data['error'] ??
+              response.data['message'] ??
+              response.data['detail'] ??
+              'Login failed';
+        }
+        print(
+          '❌ Login failed with status ${response.statusCode}: $errorMessage',
         );
+        throw ServerException(errorMessage, statusCode: response.statusCode);
       }
     } on DioException catch (e) {
       if (e.type == DioExceptionType.connectionTimeout ||
@@ -88,10 +117,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       final response = await _apiClient.post(
         AppConstants.forgotPasswordEndpoint,
-        data: {
-          'name': name,
-          'email': email,
-        },
+        data: {'name': name, 'email': email},
       );
 
       if (response.statusCode != 200) {

@@ -2,21 +2,24 @@ class AppConstants {
   // App Info
   static const String appName = 'Guardian Grove';
   static const String appVersion = '1.0.0';
-  
   // API Configuration (Your backend)
-  static const String baseUrl = 'http://localhost:8000'; // Change this for production
+  // Use 10.0.2.2 for Android emulator, or your computer's IP for real device
+  static const String baseUrl =
+      'http://10.0.2.2:8000'; // Android emulator maps to host localhost
+  // Alternative for real device: 'http://192.168.0.101:8000'
+  // To find your IP: Run 'ipconfig' in cmd and look for IPv4 Address
   static const String apiVersion = '';
-  
+
   // API Endpoints
   static const String loginEndpoint = '/auth/login';
   static const String registerEndpoint = '/auth/register';
   static const String forgotPasswordEndpoint = '/auth/forget-password';
-  
+
   // Storage Keys
   static const String tokenKey = 'auth_token';
   static const String userKey = 'user_data';
   static const String isFirstTimeKey = 'is_first_time';
-  
+
   // Timeouts
   static const int connectionTimeout = 30000; // 30 seconds
   static const int receiveTimeout = 30000; // 30 seconds

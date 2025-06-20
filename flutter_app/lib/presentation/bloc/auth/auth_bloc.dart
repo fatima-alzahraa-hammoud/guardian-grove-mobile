@@ -22,15 +22,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     try {
       emit(AuthLoading());
-      
+
       // Check if user is logged in
       if (StorageService.isLoggedIn()) {
         final user = StorageService.getUser();
         if (user != null) {
-          emit(AuthAuthenticated(
-            user: user,
-            requiresPasswordChange: user.isTempPassword,
-          ));
+          emit(
+            AuthAuthenticated(
+              user: user,
+              requiresPasswordChange: user.isTempPassword,
+            ),
+          );
         } else {
           emit(AuthUnauthenticated());
         }
@@ -42,23 +44,27 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  Future<void> _onLogin(
-    LoginEvent event,
-    Emitter<AuthState> emit,
-  ) async {
+  Future<void> _onLogin(LoginEvent event, Emitter<AuthState> emit) async {
     try {
       emit(AuthLoading());
-
       final response = await _authRemoteDataSource.login(event.loginRequest);
+      print('🔐 AuthBloc - Login response received successfully');
+      print('🔐 AuthBloc - User: ${response.user.name}');
+      print('🔐 AuthBloc - Token: ${response.token.substring(0, 20)}...');
 
       // Save token and user data
       await StorageService.saveToken(response.token);
       await StorageService.saveUser(response.user);
+      print('🔐 AuthBloc - Data saved to storage');
 
-      emit(AuthAuthenticated(
-        user: response.user,
-        requiresPasswordChange: response.requiresPasswordChange,
-      ));
+      print('🔐 AuthBloc - Emitting AuthAuthenticated state');
+      emit(
+        AuthAuthenticated(
+          user: response.user,
+          requiresPasswordChange: response.requiresPasswordChange,
+        ),
+      );
+      print('🔐 AuthBloc - AuthAuthenticated state emitted');
     } on NetworkException catch (e) {
       emit(AuthError(e.message));
     } on ServerException catch (e) {
@@ -70,23 +76,24 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  Future<void> _onRegister(
-    RegisterEvent event,
-    Emitter<AuthState> emit,
-  ) async {
+  Future<void> _onRegister(RegisterEvent event, Emitter<AuthState> emit) async {
     try {
       emit(AuthLoading());
 
-      final response = await _authRemoteDataSource.register(event.registerRequest);
+      final response = await _authRemoteDataSource.register(
+        event.registerRequest,
+      );
 
       // Save token and user data
       await StorageService.saveToken(response.token);
       await StorageService.saveUser(response.user);
 
-      emit(AuthAuthenticated(
-        user: response.user,
-        requiresPasswordChange: response.requiresPasswordChange,
-      ));
+      emit(
+        AuthAuthenticated(
+          user: response.user,
+          requiresPasswordChange: response.requiresPasswordChange,
+        ),
+      );
     } on NetworkException catch (e) {
       emit(AuthError(e.message));
     } on ServerException catch (e) {
@@ -107,7 +114,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       await _authRemoteDataSource.forgotPassword(event.name, event.email);
 
-      emit(const ForgotPasswordSuccess('Password reset email sent successfully'));
+      emit(
+        const ForgotPasswordSuccess('Password reset email sent successfully'),
+      );
     } on NetworkException catch (e) {
       emit(AuthError(e.message));
     } on ServerException catch (e) {
@@ -117,10 +126,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  Future<void> _onLogout(
-    LogoutEvent event,
-    Emitter<AuthState> emit,
-  ) async {
+  Future<void> _onLogout(LogoutEvent event, Emitter<AuthState> emit) async {
     try {
       emit(AuthLoading());
 

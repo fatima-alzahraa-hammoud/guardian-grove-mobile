@@ -7,19 +7,26 @@ import 'injection_container.dart' as di;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize storage service
   await StorageService.init();
-  
+
   // Initialize dependency injection
   await di.init();
-  
   // Initialize API client
   ApiClient().init();
-  
+
+  // Test backend connectivity (optional - for debugging)
+  try {
+    final isConnected = await ApiClient().testConnection();
+    print('Backend connection status: ${isConnected ? "Connected" : "Failed"}');
+  } catch (e) {
+    print('Backend connection test error: $e');
+  }
+
   // Set up BLoC observer for debugging
   Bloc.observer = SimpleBlocObserver();
-  
+
   runApp(const GuardianGroveApp());
 }
 

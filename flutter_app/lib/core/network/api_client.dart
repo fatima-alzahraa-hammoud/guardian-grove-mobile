@@ -10,24 +10,32 @@ class ApiClient {
   late Dio _dio;
 
   void init() {
-    _dio = Dio(BaseOptions(
-      baseUrl: AppConstants.baseUrl,
-      connectTimeout: const Duration(milliseconds: AppConstants.connectionTimeout),
-      receiveTimeout: const Duration(milliseconds: AppConstants.receiveTimeout),
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-    ));
+    _dio = Dio(
+      BaseOptions(
+        baseUrl: AppConstants.baseUrl,
+        connectTimeout: const Duration(
+          milliseconds: AppConstants.connectionTimeout,
+        ),
+        receiveTimeout: const Duration(
+          milliseconds: AppConstants.receiveTimeout,
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      ),
+    );
 
     // Add logging interceptor for debugging
-    _dio.interceptors.add(LogInterceptor(
-      requestBody: true,
-      responseBody: true,
-      requestHeader: true,
-      responseHeader: false,
-      error: true,
-    ));
+    _dio.interceptors.add(
+      LogInterceptor(
+        requestBody: true,
+        responseBody: true,
+        requestHeader: true,
+        responseHeader: false,
+        error: true,
+      ),
+    );
 
     // Add auth interceptor (we'll implement this later)
     _dio.interceptors.add(AuthInterceptor());
@@ -42,8 +50,11 @@ class ApiClient {
     Options? options,
   }) async {
     try {
-      return await _dio.get(path,
-          queryParameters: queryParameters, options: options);
+      return await _dio.get(
+        path,
+        queryParameters: queryParameters,
+        options: options,
+      );
     } catch (e) {
       rethrow;
     }
@@ -57,8 +68,12 @@ class ApiClient {
     Options? options,
   }) async {
     try {
-      return await _dio.post(path,
-          data: data, queryParameters: queryParameters, options: options);
+      return await _dio.post(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+      );
     } catch (e) {
       rethrow;
     }
@@ -72,8 +87,12 @@ class ApiClient {
     Options? options,
   }) async {
     try {
-      return await _dio.put(path,
-          data: data, queryParameters: queryParameters, options: options);
+      return await _dio.put(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+      );
     } catch (e) {
       rethrow;
     }
@@ -87,10 +106,25 @@ class ApiClient {
     Options? options,
   }) async {
     try {
-      return await _dio.delete(path,
-          data: data, queryParameters: queryParameters, options: options);
+      return await _dio.delete(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+      );
     } catch (e) {
       rethrow;
+    }
+  }
+
+  // Health check method to test backend connectivity
+  Future<bool> testConnection() async {
+    try {
+      final response = await _dio.get('/health');
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Backend connection test failed: $e');
+      return false;
     }
   }
 }
