@@ -12,7 +12,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = StorageService.getUser();
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Guardian Grove'),
@@ -51,8 +51,18 @@ class HomePage extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      Colors.deepPurple.withOpacity(0.1),
-                      Colors.purple.withOpacity(0.05),
+                      Color.fromARGB(
+                        26,
+                        Colors.deepPurple.red,
+                        Colors.deepPurple.green,
+                        Colors.deepPurple.blue,
+                      ),
+                      Color.fromARGB(
+                        13,
+                        Colors.purple.red,
+                        Colors.purple.green,
+                        Colors.purple.blue,
+                      ),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -68,7 +78,7 @@ class HomePage extends StatelessWidget {
                           radius: 30,
                           backgroundColor: Colors.deepPurple,
                           child: Text(
-                            user?.name.isNotEmpty == true 
+                            user?.name.isNotEmpty == true
                                 ? user!.name[0].toUpperCase()
                                 : 'U',
                             style: const TextStyle(
@@ -127,19 +137,16 @@ class HomePage extends StatelessWidget {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Quick Stats
               const Text(
                 'Family Overview',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
-              
+
               Row(
                 children: [
                   Expanded(
@@ -161,19 +168,16 @@ class HomePage extends StatelessWidget {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Quick Actions
               const Text(
                 'Quick Actions',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
-              
+
               GridView.count(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -228,17 +232,14 @@ class HomePage extends StatelessWidget {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // User Info Section (for debugging)
               if (user != null) ...[
                 const Text(
                   'User Information',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
                 Container(
@@ -277,22 +278,18 @@ class HomePage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: Color.fromARGB(26, color.red, color.green, color.blue),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(
+          color: Color.fromARGB(77, color.red, color.green, color.blue),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: color, size: 24),
           const SizedBox(height: 8),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
-            ),
-          ),
+          Text(title, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
           Text(
             value,
             style: TextStyle(
@@ -323,7 +320,12 @@ class HomePage extends StatelessWidget {
           border: Border.all(color: Colors.grey[300]!),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Color.fromARGB(
+                26,
+                Colors.grey.red,
+                Colors.grey.green,
+                Colors.grey.blue,
+              ),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -336,17 +338,11 @@ class HomePage extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
             Text(
               subtitle,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
           ],
         ),
@@ -371,12 +367,7 @@ class HomePage extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                color: Colors.black87,
-              ),
-            ),
+            child: Text(value, style: const TextStyle(color: Colors.black87)),
           ),
         ],
       ),
@@ -402,10 +393,7 @@ class HomePage extends StatelessWidget {
                 Navigator.of(context).pop();
                 context.read<AuthBloc>().add(LogoutEvent());
               },
-              child: const Text(
-                'Logout',
-                style: TextStyle(color: Colors.red),
-              ),
+              child: const Text('Logout', style: TextStyle(color: Colors.red)),
             ),
           ],
         );
