@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'app/app.dart';
 import 'core/network/api_client.dart';
 import 'core/services/storage_service.dart';
+import 'core/utils/connectivity_helper.dart';
 import 'injection_container.dart' as di;
 
 void main() async {
@@ -12,9 +13,11 @@ void main() async {
   await StorageService.init();
   // Initialize dependency injection
   await di.init();
-
-  // Initialize API client (no test connection on startup to avoid auth issues)
+  // Initialize API client
   ApiClient().init();
+
+  // Debug network connectivity (helpful for troubleshooting)
+  await ConnectivityHelper.debugNetworkSettings();
 
   // Set up BLoC observer for debugging
   Bloc.observer = SimpleBlocObserver();

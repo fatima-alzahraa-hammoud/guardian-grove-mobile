@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../main/main_app.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../bloc/auth/auth_bloc.dart';
+import '../../bloc/auth/auth_event.dart';
 
 class AddMemberScreen extends StatefulWidget {
   const AddMemberScreen({super.key});
@@ -238,11 +240,8 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
   }
 
   void _saveAndContinue() {
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => const MainApp()),
-      (route) => false,
-    );
+    // Complete the registration flow and go to MainApp
+    context.read<AuthBloc>().add(CompleteRegistrationFlowEvent());
   }
 
   @override
@@ -282,11 +281,9 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
                             size: 20,
                           ),
                           onPressed: () {
-                            Navigator.of(context).pushAndRemoveUntil(
-                              MaterialPageRoute(
-                                builder: (context) => const MainApp(),
-                              ),
-                              (route) => false,
+                            // Complete the registration flow and go to MainApp
+                            context.read<AuthBloc>().add(
+                              CompleteRegistrationFlowEvent(),
                             );
                           },
                         ),

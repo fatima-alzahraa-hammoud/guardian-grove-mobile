@@ -32,13 +32,12 @@ class ForgotPasswordEvent extends AuthEvent {
   final String name;
   final String email;
 
-  const ForgotPasswordEvent({
-    required this.name,
-    required this.email,
-  });
+  const ForgotPasswordEvent({required this.name, required this.email});
 
   @override
   List<Object> get props => [name, email];
 }
 
 class LogoutEvent extends AuthEvent {}
+
+class CompleteRegistrationFlowEvent extends AuthEvent {}

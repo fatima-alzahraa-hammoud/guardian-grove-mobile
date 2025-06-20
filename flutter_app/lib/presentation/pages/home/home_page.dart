@@ -2,16 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_state.dart';
-import '../../bloc/home/home_bloc.dart'; // Add this import
-import '../../../core/services/storage_service.dart';
+import '../../bloc/home/home_bloc.dart';
+import '../../../injection_container.dart' as di;
 import '../auth/login_page.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
-    final user = StorageService.getUser();
+    return BlocProvider(
+      create: (context) => di.sl<HomeBloc>()..add(LoadHomeData()),
+      child: const HomeView(),
+    );
+  }
+}
 
+class HomeView extends StatelessWidget {
+  const HomeView({super.key});
+  @override
+  Widget build(BuildContext context) {
     return MultiBlocListener(
       listeners: [
         BlocListener<AuthBloc, AuthState>(
@@ -28,6 +38,10 @@ class HomeScreen extends StatelessWidget {
           listener: (context, state) {
             if (state is NavigationRequested) {
               _handleNavigation(context, state.routeName);
+            } else if (state is InvitationSent) {
+              _showSuccessMessage(context, state.message);
+            } else if (state is HomeError) {
+              _showErrorMessage(context, state.message);
             }
           },
         ),
@@ -36,8 +50,14 @@ class HomeScreen extends StatelessWidget {
         backgroundColor: const Color(0xFFF8F9FE),
         body: BlocBuilder<HomeBloc, HomeState>(
           builder: (context, state) {
-            if (state is HomeLoaded) {
-              return _buildHomeContent(context, state, user);
+            if (state is HomeLoading) {
+              return const Center(
+                child: CircularProgressIndicator(color: Color(0xFF0EA5E9)),
+              );
+            } else if (state is HomeLoaded) {
+              return _buildHomeContent(context, state);
+            } else if (state is HomeError) {
+              return _buildErrorState(context, state.message);
             }
             return const Center(
               child: CircularProgressIndicator(color: Color(0xFF0EA5E9)),
@@ -48,70 +68,74 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHomeContent(
-    BuildContext context,
-    HomeLoaded state,
-    dynamic user,
-  ) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Section with User Info
-          _buildHeaderSection(state, user),
-          const SizedBox(height: 24),
+  Widget _buildHomeContent(BuildContext context, HomeLoaded state) {
+    return RefreshIndicator(
+      onRefresh: () async {
+        context.read<HomeBloc>().add(RefreshHomeData());
+      },
+      color: const Color(0xFF0EA5E9),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header Section with User Info
+            _buildHeaderSection(state),
+            const SizedBox(height: 24),
 
-          // Add Members Section
-          _buildAddMembersSection(context),
-          const SizedBox(height: 24),
+            // Add Members Section
+            _buildAddMembersSection(context, state),
+            const SizedBox(height: 24), // Daily Message Section
+            _buildDailyMessageSection(context, state),
+            const SizedBox(height: 24),
 
-          // Daily Message Section
-          _buildDailyMessageSection(),
-          const SizedBox(height: 24),
+            // Quick Actions Grid
+            _buildQuickActionsGrid(context),
+            const SizedBox(height: 24),
 
-          // Quick Actions Grid
-          _buildQuickActionsGrid(context),
-          const SizedBox(height: 24),
-
-          // Family Features Section
-          const Text(
-            'Family Features',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1A202C),
+            // Family Features Section
+            const Text(
+              'Family Features',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1A202C),
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          _buildFamilyFeaturesGrid(context),
-          const SizedBox(height: 24),
+            const SizedBox(height: 16),
+            _buildFamilyFeaturesGrid(context),
+            const SizedBox(height: 24),
 
-          // Ready to have tasks? Section
-          _buildTasksSection(context),
-          const SizedBox(height: 24),
+            // Ready to have tasks? Section
+            _buildTasksSection(context),
+            const SizedBox(height: 24),
 
-          // Ready to play? Section
-          _buildPlaySection(context),
-          const SizedBox(height: 24),
+            // Ready to play? Section
+            _buildPlaySection(context),
+            const SizedBox(height: 24),
 
-          // Track your Child Section
-          _buildTrackChildSection(context),
-          const SizedBox(height: 24),
+            // Track your Child Section
+            _buildTrackChildSection(context),
+            const SizedBox(height: 24),
 
-          // Progress Section
-          _buildProgressSection(context, state),
-          const SizedBox(height: 24),
+            // Progress Section
+            _buildProgressSection(context, state),
+            const SizedBox(height: 24),
 
-          // AI Assistant Section
-          _buildAIAssistantSection(context),
-          const SizedBox(height: 32),
-        ],
+            // AI Assistant Section
+            _buildAIAssistantSection(context),
+            const SizedBox(height: 32),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildHeaderSection(HomeLoaded state, dynamic user) {
+  Widget _buildHeaderSection(HomeLoaded state) {
+    final user = state.homeData.user;
+    final stats = state.homeData.familyStats;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -150,14 +174,37 @@ class HomeScreen extends StatelessWidget {
                   ],
                 ),
                 child: Center(
-                  child: Text(
-                    state.userName[0],
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
+                  child:
+                      user.avatar.isNotEmpty
+                          ? ClipOval(
+                            child: Image.network(
+                              user.avatar,
+                              width: 60,
+                              height: 60,
+                              fit: BoxFit.cover,
+                              errorBuilder:
+                                  (context, error, stackTrace) => Text(
+                                    user.name.isNotEmpty
+                                        ? user.name[0].toUpperCase()
+                                        : 'U',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                            ),
+                          )
+                          : Text(
+                            user.name.isNotEmpty
+                                ? user.name[0].toUpperCase()
+                                : 'U',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -166,16 +213,16 @@ class HomeScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Hi, ${state.userName} 👋',
+                      'Hi, ${user.name} 👋',
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF1A202C),
                       ),
                     ),
-                    const Text(
-                      'Monday, May 14, 2025',
-                      style: TextStyle(
+                    Text(
+                      _formatCurrentDate(),
+                      style: const TextStyle(
                         fontSize: 14,
                         color: Color(0xFF64748B),
                         fontWeight: FontWeight.w500,
@@ -193,19 +240,19 @@ class HomeScreen extends StatelessWidget {
             children: [
               _buildStatChip(
                 Icons.star_rounded,
-                '${state.stars}',
+                '${stats.stars}',
                 const Color(0xFFF59E0B),
               ),
               const SizedBox(width: 12),
               _buildStatChip(
                 Icons.monetization_on_rounded,
-                '${state.coins}',
+                '${stats.coins}',
                 const Color(0xFF10B981),
               ),
               const SizedBox(width: 12),
               _buildStatChip(
                 Icons.emoji_events_rounded,
-                '#${state.rank}',
+                '#${stats.rank}',
                 const Color(0xFF8B5CF6),
               ),
             ],
@@ -213,6 +260,35 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _formatCurrentDate() {
+    final now = DateTime.now();
+    final weekdays = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
+    final months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+
+    return '${weekdays[now.weekday - 1]}, ${months[now.month - 1]} ${now.day}, ${now.year}';
   }
 
   Widget _buildStatChip(IconData icon, String value, Color color) {
@@ -241,7 +317,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAddMembersSection(BuildContext context) {
+  Widget _buildAddMembersSection(BuildContext context, HomeLoaded state) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -272,23 +348,33 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  'Invite your family to join',
-                  style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+                Text(
+                  'Invite your family to join (${state.homeData.familyStats.familyMembersCount} members)',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF64748B),
+                  ),
                 ),
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0EA5E9),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
               borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.group_add_rounded,
-              color: Colors.white,
-              size: 20,
+              onTap: () => _showInviteMemberDialog(context),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0EA5E9),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.group_add_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
             ),
           ),
         ],
@@ -296,7 +382,46 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDailyMessageSection() {
+  void _showInviteMemberDialog(BuildContext context) {
+    final emailController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Invite Family Member'),
+            content: TextField(
+              controller: emailController,
+              decoration: const InputDecoration(
+                labelText: 'Email Address',
+                hintText: 'Enter family member\'s email',
+              ),
+              keyboardType: TextInputType.emailAddress,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  if (emailController.text.isNotEmpty) {
+                    context.read<HomeBloc>().add(
+                      InviteFamilyMember(emailController.text),
+                    );
+                    Navigator.pop(context);
+                  }
+                },
+                child: const Text('Send Invitation'),
+              ),
+            ],
+          ),
+    );
+  }
+
+  Widget _buildDailyMessageSection(BuildContext context, HomeLoaded state) {
+    final dailyMessage = state.homeData.dailyMessage;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -318,18 +443,40 @@ class HomeScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Daily Message',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Daily Message',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: () {
+                    context.read<HomeBloc>().add(RefreshDailyMessage());
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    child: const Icon(
+                      Icons.refresh_rounded,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
-          const Text(
-            '"Every day is a new adventure waiting to unfold with your family!"',
-            style: TextStyle(
+          Text(
+            '"${dailyMessage.message}"',
+            style: const TextStyle(
               fontSize: 14,
               color: Colors.white,
               fontWeight: FontWeight.w400,
@@ -348,9 +495,9 @@ class HomeScreen extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text(
-                  '✨ Inspiration',
-                  style: TextStyle(
+                child: Text(
+                  '✨ ${dailyMessage.category}',
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
@@ -628,16 +775,31 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildProgressSection(BuildContext context, HomeLoaded state) {
+    final stats = state.homeData.familyStats;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Tap to view your progress',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF1A202C),
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Tap to view your progress',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1A202C),
+              ),
+            ),
+            Text(
+              '${stats.completedTasks}/${stats.totalTasks} tasks',
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF64748B),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
         Row(
@@ -899,6 +1061,99 @@ class HomeScreen extends StatelessWidget {
         backgroundColor: const Color(0xFF0EA5E9),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context, String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.error_outline_rounded,
+            size: 80,
+            color: Color(0xFFEF4444),
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            'Oops! Something went wrong',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1A202C),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            style: const TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF0EA5E9),
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(24),
+                onTap: () {
+                  context.read<HomeBloc>().add(LoadHomeData());
+                },
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  child: Text(
+                    'Try Again',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSuccessMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle_rounded, color: Colors.white),
+            const SizedBox(width: 8),
+            Text(message),
+          ],
+        ),
+        backgroundColor: const Color(0xFF10B981),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  void _showErrorMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline_rounded, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: const Color(0xFFEF4444),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 4),
       ),
     );
   }

@@ -11,6 +11,7 @@ import 'ai_assistant_screen.dart';
 import 'messaging_screen.dart';
 import 'profile_screen.dart';
 import '../../../core/services/storage_service.dart';
+import '../../../injection_container.dart' as di;
 
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
@@ -20,7 +21,7 @@ class MainApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => BottomNavCubit()),
-        BlocProvider(create: (_) => HomeBloc()..add(HomeLoadedEvent())),
+        BlocProvider(create: (_) => di.sl<HomeBloc>()..add(LoadHomeData())),
       ],
       child: const MainAppView(),
     );

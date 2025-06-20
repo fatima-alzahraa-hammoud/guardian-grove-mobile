@@ -25,6 +25,19 @@ class AuthAuthenticated extends AuthState {
   List<Object> get props => [user, requiresPasswordChange];
 }
 
+class AuthNewRegistration extends AuthState {
+  final UserModel user;
+  final bool requiresPasswordChange;
+
+  const AuthNewRegistration({
+    required this.user,
+    this.requiresPasswordChange = false,
+  });
+
+  @override
+  List<Object> get props => [user, requiresPasswordChange];
+}
+
 class AuthUnauthenticated extends AuthState {}
 
 class AuthError extends AuthState {

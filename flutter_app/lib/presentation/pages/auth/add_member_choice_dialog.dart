@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../main/main_app.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../bloc/auth/auth_bloc.dart';
+import '../../bloc/auth/auth_event.dart';
 import 'add_member_screen.dart';
 
 class AddMemberChoiceDialog extends StatelessWidget {
@@ -175,11 +177,9 @@ class AddMemberChoiceDialog extends StatelessWidget {
                         borderRadius: BorderRadius.circular(26),
                         onTap: () {
                           Navigator.of(context).pop();
-                          Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(
-                              builder: (context) => const MainApp(),
-                            ),
-                            (route) => false,
+                          // Complete the registration flow and go to MainApp
+                          context.read<AuthBloc>().add(
+                            CompleteRegistrationFlowEvent(),
                           );
                         },
                         child: const Center(
