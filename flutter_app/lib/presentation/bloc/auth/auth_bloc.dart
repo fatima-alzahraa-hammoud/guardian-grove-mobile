@@ -15,7 +15,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<ForgotPasswordEvent>(_onForgotPassword);
     on<LogoutEvent>(_onLogout);
   }
-
   Future<void> _onCheckAuthStatus(
     CheckAuthStatusEvent event,
     Emitter<AuthState> emit,
@@ -23,10 +22,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       emit(AuthLoading());
 
-      // Check if user is logged in
+      // Check if user is logged in and has valid data
       if (StorageService.isLoggedIn()) {
         final user = StorageService.getUser();
-        if (user != null) {
+        final token = StorageService.getToken();
+
+        if (user != null && token != null && token.isNotEmpty) {
           emit(
             AuthAuthenticated(
               user: user,
@@ -34,12 +35,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             ),
           );
         } else {
+          // Invalid user data, clear storage and logout
+          await StorageService.clearAll();
           emit(AuthUnauthenticated());
         }
       } else {
         emit(AuthUnauthenticated());
       }
     } catch (e) {
+      // If there's any error reading auth data, clear it and logout
+      await StorageService.clearAll();
       emit(AuthError('Failed to check auth status: ${e.toString()}'));
     }
   }

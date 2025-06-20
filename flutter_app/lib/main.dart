@@ -10,17 +10,11 @@ void main() async {
 
   // Initialize storage service
   await StorageService.init();
-
   // Initialize dependency injection
   await di.init();
-  // Initialize API client
-  ApiClient().init(); // Test backend connectivity (optional - for debugging)
-  try {
-    await ApiClient().testConnection();
-    // Connection test completed silently
-  } catch (e) {
-    // Connection test failed silently
-  }
+
+  // Initialize API client (no test connection on startup to avoid auth issues)
+  ApiClient().init();
 
   // Set up BLoC observer for debugging
   Bloc.observer = SimpleBlocObserver();

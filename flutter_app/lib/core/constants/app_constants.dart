@@ -8,6 +8,12 @@ class AppConstants {
       'http://10.0.2.2:8000'; // Android emulator maps to host localhost
   // Alternative for real device: 'http://192.168.0.101:8000'
   // To find your IP: Run 'ipconfig' in cmd and look for IPv4 Address
+
+  // Fallback URLs for testing
+  static const String fallbackBaseUrl =
+      'http://192.168.1.100:8000'; // Your actual IP
+  static const String localBaseUrl = 'http://localhost:8000'; // For testing
+
   static const String apiVersion = '';
 
   // API Endpoints
@@ -19,7 +25,6 @@ class AppConstants {
   static const String tokenKey = 'auth_token';
   static const String userKey = 'user_data';
   static const String isFirstTimeKey = 'is_first_time';
-
   // Timeouts
   static const int connectionTimeout = 30000; // 30 seconds
   static const int receiveTimeout = 30000; // 30 seconds

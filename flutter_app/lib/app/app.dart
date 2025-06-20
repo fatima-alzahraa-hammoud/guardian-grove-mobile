@@ -5,7 +5,7 @@ import '../core/constants/app_constants.dart';
 import '../core/constants/app_colors.dart';
 import '../injection_container.dart' as di;
 import '../presentation/bloc/auth/auth_bloc.dart';
-
+import '../presentation/bloc/auth/auth_event.dart';
 
 class GuardianGroveApp extends StatelessWidget {
   const GuardianGroveApp({super.key});
@@ -15,7 +15,12 @@ class GuardianGroveApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<AuthBloc>(
-          create: (context) => di.sl<AuthBloc>(),
+          create: (context) {
+            final authBloc = di.sl<AuthBloc>();
+            // Check authentication status on app startup
+            authBloc.add(CheckAuthStatusEvent());
+            return authBloc;
+          },
         ),
       ],
       child: MaterialApp(
@@ -28,7 +33,6 @@ class GuardianGroveApp extends StatelessWidget {
           ),
           useMaterial3: true,
           fontFamily: 'Comic Sans MS', // Child-friendly font
-          
           // AppBar theme
           appBarTheme: const AppBarTheme(
             backgroundColor: AppColors.primaryTeal,
@@ -36,7 +40,7 @@ class GuardianGroveApp extends StatelessWidget {
             elevation: 0,
             centerTitle: true,
           ),
-          
+
           // Button themes
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
@@ -48,7 +52,7 @@ class GuardianGroveApp extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
             ),
           ),
-          
+
           // Card theme
           cardTheme: CardTheme(
             color: AppColors.cardBackground,
@@ -58,7 +62,7 @@ class GuardianGroveApp extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
             ),
           ),
-          
+
           // Input decoration theme
           inputDecorationTheme: InputDecorationTheme(
             filled: true,

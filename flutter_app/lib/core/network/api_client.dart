@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../constants/app_constants.dart';
 import '../services/storage_service.dart';
 
@@ -143,10 +144,11 @@ class AuthInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    // Handle auth errors (401) - could trigger logout
+    // Handle auth errors (401) - but don't automatically clear storage
+    // The AuthBloc should handle logout logic to maintain state consistency
     if (err.response?.statusCode == 401) {
-      // Token might be expired, could clear storage here
-      StorageService.clearAll();
+      // Just log the error, don't clear storage automatically
+      debugPrint('401 Unauthorized - token may be expired');
     }
     handler.next(err);
   }

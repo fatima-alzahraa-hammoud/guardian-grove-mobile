@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../home/home_page.dart';
+import '../main/main_app.dart';
 import 'add_member_screen.dart';
 
 class AddMemberChoiceDialog extends StatelessWidget {
@@ -177,7 +177,7 @@ class AddMemberChoiceDialog extends StatelessWidget {
                           Navigator.of(context).pop();
                           Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(
-                              builder: (context) => const HomePage(),
+                              builder: (context) => const MainApp(),
                             ),
                             (route) => false,
                           );

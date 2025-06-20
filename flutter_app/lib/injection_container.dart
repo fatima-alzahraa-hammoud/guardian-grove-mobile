@@ -2,6 +2,8 @@ import 'package:get_it/get_it.dart';
 import 'core/network/api_client.dart';
 import 'data/datasources/remote/auth_remote_datasource.dart';
 import 'presentation/bloc/auth/auth_bloc.dart';
+import 'presentation/bloc/home/home_bloc.dart';
+import 'presentation/bloc/bottom_nav/bottom_nav_cubit.dart';
 
 // Service locator instance
 final sl = GetIt.instance;
@@ -33,5 +35,15 @@ Future<void> _initBlocs() async {
   // Register Auth BLoC
   sl.registerFactory<AuthBloc>(
     () => AuthBloc(sl<AuthRemoteDataSource>()),
+  );
+  
+  // Register Home BLoC ⭐ ADDED
+  sl.registerFactory<HomeBloc>(
+    () => HomeBloc(),
+  );
+  
+  // Register Bottom Navigation Cubit ⭐ ADDED
+  sl.registerFactory<BottomNavCubit>(
+    () => BottomNavCubit(),
   );
 }

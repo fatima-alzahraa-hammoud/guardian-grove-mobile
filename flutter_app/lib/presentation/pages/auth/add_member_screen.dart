@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../home/home_page.dart';
+import '../main/main_app.dart';
 
 class AddMemberScreen extends StatefulWidget {
   const AddMemberScreen({super.key});
@@ -240,7 +240,7 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
   void _saveAndContinue() {
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (context) => const HomePage()),
+      MaterialPageRoute(builder: (context) => const MainApp()),
       (route) => false,
     );
   }
@@ -284,7 +284,7 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
                           onPressed: () {
                             Navigator.of(context).pushAndRemoveUntil(
                               MaterialPageRoute(
-                                builder: (context) => const HomePage(),
+                                builder: (context) => const MainApp(),
                               ),
                               (route) => false,
                             );

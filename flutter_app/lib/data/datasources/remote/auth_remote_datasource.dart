@@ -13,7 +13,6 @@ abstract class AuthRemoteDataSource {
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final ApiClient _apiClient;
   AuthRemoteDataSourceImpl(this._apiClient);
-
   @override
   Future<AuthResponse> login(LoginRequest request) async {
     try {
