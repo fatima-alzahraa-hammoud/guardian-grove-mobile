@@ -123,7 +123,7 @@ class ApiClient {
       final response = await _dio.get('/health');
       return response.statusCode == 200;
     } catch (e) {
-      print('Backend connection test failed: $e');
+      // Connection test failed silently
       return false;
     }
   }

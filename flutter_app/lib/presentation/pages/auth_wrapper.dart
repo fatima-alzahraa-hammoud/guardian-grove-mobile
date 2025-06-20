@@ -41,12 +41,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        print(
-          '🎧 AuthWrapper Listener - State changed to: ${state.runtimeType}',
-        );
-
         if (state is AuthError) {
-          print('🎧 AuthWrapper Listener - Showing error: ${state.message}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(
@@ -67,21 +62,15 @@ class _AuthWrapperState extends State<AuthWrapper> {
       },
       child: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
-          print('🏠 AuthWrapper - Current state: ${state.runtimeType}');
-          print('🏠 AuthWrapper - Show splash: $_showSplash');
-
           // Show splash screen for first 2.5 seconds
           if (_showSplash) {
-            print('🏠 AuthWrapper - Showing SplashScreen');
             return const SplashScreen();
           }
 
           // After splash, show appropriate page based on auth state
           if (state is AuthAuthenticated) {
-            print('🏠 AuthWrapper - User is authenticated, showing HomePage');
             return const HomePage();
           } else {
-            print('🏠 AuthWrapper - User not authenticated, showing LoginPage');
             return const LoginPage();
           }
         },

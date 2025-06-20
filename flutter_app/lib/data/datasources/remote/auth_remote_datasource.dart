@@ -12,36 +12,15 @@ abstract class AuthRemoteDataSource {
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final ApiClient _apiClient;
-
   AuthRemoteDataSourceImpl(this._apiClient);
-
-  // Helper method to extract error message from response
-  String _extractErrorMessage(
-    Map<String, dynamic>? responseData,
-    String defaultMessage,
-  ) {
-    if (responseData == null) return defaultMessage;
-    return responseData['error'] ??
-        responseData['message'] ??
-        responseData['detail'] ??
-        defaultMessage;
-  }
 
   @override
   Future<AuthResponse> login(LoginRequest request) async {
     try {
-      print(
-        '🚀 Sending login request to: ${AppConstants.baseUrl}${AppConstants.loginEndpoint}',
-      );
-      print('📝 Request data: ${request.toJson()}');
-
       final response = await _apiClient.post(
         AppConstants.loginEndpoint,
         data: request.toJson(),
       );
-
-      print('📡 Response status: ${response.statusCode}');
-      print('📄 Response data: ${response.data}');
 
       if (response.statusCode == 200) {
         return AuthResponse.fromJson(response.data);
@@ -55,9 +34,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
               response.data['detail'] ??
               'Login failed';
         }
-        print(
-          '❌ Login failed with status ${response.statusCode}: $errorMessage',
-        );
         throw ServerException(errorMessage, statusCode: response.statusCode);
       }
     } on DioException catch (e) {

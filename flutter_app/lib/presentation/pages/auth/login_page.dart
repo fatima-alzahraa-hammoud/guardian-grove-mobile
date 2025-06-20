@@ -44,9 +44,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.childishGradient,
-        ),
+        decoration: const BoxDecoration(gradient: AppColors.childishGradient),
         child: SafeArea(
           child: BlocListener<AuthBloc, AuthState>(
             listener: (context, state) {
@@ -65,16 +63,15 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 children: [
                   const SizedBox(height: 60),
-                  
                   // Logo Section
                   Container(
                     padding: const EdgeInsets.all(25),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.95),
+                      color: Colors.white.withValues(alpha: 0.95),
                       borderRadius: BorderRadius.circular(25),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withValues(alpha: 0.1),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -116,17 +113,15 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
 
-                  const SizedBox(height: 32),
-
-                  // Form Section
+                  const SizedBox(height: 32), // Form Section
                   Container(
                     padding: const EdgeInsets.all(30),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.95),
+                      color: Colors.white.withValues(alpha: 0.95),
                       borderRadius: BorderRadius.circular(25),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withValues(alpha: 0.1),
                           blurRadius: 25,
                           offset: const Offset(0, 15),
                         ),
@@ -167,7 +162,9 @@ class _LoginPageState extends State<LoginPage> {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter your email';
                               }
-                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                              if (!RegExp(
+                                r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                              ).hasMatch(value)) {
                                 return 'Please enter a valid email';
                               }
                               return null;
@@ -185,7 +182,9 @@ class _LoginPageState extends State<LoginPage> {
                               prefixIcon: const Icon(Icons.lock_outline),
                               suffixIcon: IconButton(
                                 icon: Icon(
-                                  _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                                  _obscurePassword
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
                                 ),
                                 onPressed: () {
                                   setState(() {
@@ -212,8 +211,12 @@ class _LoginPageState extends State<LoginPage> {
                                 width: double.infinity,
                                 height: 56,
                                 decoration: BoxDecoration(
-                                  gradient: state is AuthLoading ? null : AppColors.primaryGradient,
-                                  color: state is AuthLoading ? Colors.grey : null,
+                                  gradient:
+                                      state is AuthLoading
+                                          ? null
+                                          : AppColors.primaryGradient,
+                                  color:
+                                      state is AuthLoading ? Colors.grey : null,
                                   borderRadius: BorderRadius.circular(28),
                                 ),
                                 child: Material(
@@ -222,18 +225,22 @@ class _LoginPageState extends State<LoginPage> {
                                     borderRadius: BorderRadius.circular(28),
                                     onTap: state is AuthLoading ? null : _login,
                                     child: Center(
-                                      child: state is AuthLoading
-                                          ? const CircularProgressIndicator(
-                                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                            )
-                                          : const Text(
-                                              'Sign In',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
+                                      child:
+                                          state is AuthLoading
+                                              ? const CircularProgressIndicator(
+                                                valueColor:
+                                                    AlwaysStoppedAnimation<
+                                                      Color
+                                                    >(Colors.white),
+                                              )
+                                              : const Text(
+                                                'Sign In',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
                                               ),
-                                            ),
                                     ),
                                   ),
                                 ),
@@ -247,7 +254,9 @@ class _LoginPageState extends State<LoginPage> {
                           TextButton(
                             onPressed: () {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Feature coming soon!')),
+                                const SnackBar(
+                                  content: Text('Feature coming soon!'),
+                                ),
                               );
                             },
                             child: const Text(
@@ -269,7 +278,7 @@ class _LoginPageState extends State<LoginPage> {
                       Text(
                         'Don\'t have an account? ',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           fontSize: 16,
                         ),
                       ),

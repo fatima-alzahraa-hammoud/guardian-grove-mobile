@@ -48,23 +48,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       emit(AuthLoading());
       final response = await _authRemoteDataSource.login(event.loginRequest);
-      print('🔐 AuthBloc - Login response received successfully');
-      print('🔐 AuthBloc - User: ${response.user.name}');
-      print('🔐 AuthBloc - Token: ${response.token.substring(0, 20)}...');
 
       // Save token and user data
       await StorageService.saveToken(response.token);
       await StorageService.saveUser(response.user);
-      print('🔐 AuthBloc - Data saved to storage');
 
-      print('🔐 AuthBloc - Emitting AuthAuthenticated state');
       emit(
         AuthAuthenticated(
           user: response.user,
           requiresPasswordChange: response.requiresPasswordChange,
         ),
       );
-      print('🔐 AuthBloc - AuthAuthenticated state emitted');
     } on NetworkException catch (e) {
       emit(AuthError(e.message));
     } on ServerException catch (e) {

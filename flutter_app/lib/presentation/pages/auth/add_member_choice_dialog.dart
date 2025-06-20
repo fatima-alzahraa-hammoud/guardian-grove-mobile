@@ -17,7 +17,7 @@ class AddMemberChoiceDialog extends StatelessWidget {
           borderRadius: BorderRadius.circular(25),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -35,7 +35,7 @@ class AddMemberChoiceDialog extends StatelessWidget {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 5),
                   ),
@@ -47,9 +47,9 @@ class AddMemberChoiceDialog extends StatelessWidget {
                 color: AppColors.primaryTeal,
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             // Title
             const Text(
               '🎉 Welcome to Guardian Grove! 🎉',
@@ -60,14 +60,13 @@ class AddMemberChoiceDialog extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            
+
             const SizedBox(height: 12),
-            
             // Subtitle
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.9),
+                color: Colors.white.withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(15),
               ),
               child: const Text(
@@ -80,9 +79,9 @@ class AddMemberChoiceDialog extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
             ),
-            
+
             const SizedBox(height: 30),
-            
+
             // Action buttons
             Row(
               children: [
@@ -91,7 +90,7 @@ class AddMemberChoiceDialog extends StatelessWidget {
                   child: Container(
                     height: 50,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(25),
                       border: Border.all(
                         color: AppColors.primaryTeal,
@@ -105,7 +104,9 @@ class AddMemberChoiceDialog extends StatelessWidget {
                         onTap: () {
                           Navigator.of(context).pop();
                           Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(builder: (context) => const HomePage()),
+                            MaterialPageRoute(
+                              builder: (context) => const HomePage(),
+                            ),
                             (route) => false,
                           );
                         },
@@ -123,9 +124,9 @@ class AddMemberChoiceDialog extends StatelessWidget {
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(width: 16),
-                
+
                 // Yes, Add Members button
                 Expanded(
                   child: Container(
@@ -135,7 +136,7 @@ class AddMemberChoiceDialog extends StatelessWidget {
                       borderRadius: BorderRadius.circular(25),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primaryOrange.withOpacity(0.3),
+                          color: AppColors.primaryOrange.withValues(alpha: 0.3),
                           blurRadius: 10,
                           offset: const Offset(0, 5),
                         ),
@@ -148,7 +149,9 @@ class AddMemberChoiceDialog extends StatelessWidget {
                         onTap: () {
                           Navigator.of(context).pop();
                           Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(builder: (context) => const AddMemberScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => const AddMemberScreen(),
+                            ),
                             (route) => false,
                           );
                         },
@@ -168,14 +171,14 @@ class AddMemberChoiceDialog extends StatelessWidget {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Info text
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.sunYellow.withOpacity(0.9),
+                color: AppColors.sunYellow.withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(

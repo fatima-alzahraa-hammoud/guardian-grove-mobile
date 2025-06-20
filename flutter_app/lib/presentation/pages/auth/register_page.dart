@@ -16,11 +16,11 @@ class _RegisterPageState extends State<RegisterPage>
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  
+
   late AnimationController _animationController;
   late Animation<double> _slideAnimation;
   late Animation<double> _fadeAnimation;
-  
+
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
@@ -31,20 +31,12 @@ class _RegisterPageState extends State<RegisterPage>
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    _slideAnimation = Tween<double>(
-      begin: 30.0,
-      end: 0.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController, 
-      curve: Curves.easeOutCubic,
-    ));
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController, 
-      curve: Curves.easeInOut,
-    ));
+    _slideAnimation = Tween<double>(begin: 30.0, end: 0.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
     _animationController.forward();
   }
 
@@ -63,12 +55,13 @@ class _RegisterPageState extends State<RegisterPage>
       // Navigate to Profile Setup with the form data
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => ProfileSetupScreen(
-            name: _nameController.text.trim(),
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
-            confirmPassword: _confirmPasswordController.text,
-          ),
+          builder:
+              (context) => ProfileSetupScreen(
+                name: _nameController.text.trim(),
+                email: _emailController.text.trim(),
+                password: _passwordController.text,
+                confirmPassword: _confirmPasswordController.text,
+              ),
         ),
       );
     }
@@ -78,9 +71,7 @@ class _RegisterPageState extends State<RegisterPage>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.childishGradient,
-        ),
+        decoration: const BoxDecoration(gradient: AppColors.childishGradient),
         child: SafeArea(
           child: AnimatedBuilder(
             animation: _animationController,
@@ -94,13 +85,13 @@ class _RegisterPageState extends State<RegisterPage>
                     child: Column(
                       children: [
                         const SizedBox(height: 40),
-                        
+
                         // Back button
                         Row(
                           children: [
                             Container(
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.9),
+                                color: Colors.white.withValues(alpha: 0.9),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: IconButton(
@@ -113,18 +104,16 @@ class _RegisterPageState extends State<RegisterPage>
                             ),
                           ],
                         ),
-                        
-                        const SizedBox(height: 20),
 
-                        // Header Section
+                        const SizedBox(height: 20), // Header Section
                         Container(
                           padding: const EdgeInsets.all(25),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.95),
+                            color: Colors.white.withValues(alpha: 0.95),
                             borderRadius: BorderRadius.circular(25),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
+                                color: Colors.black.withValues(alpha: 0.1),
                                 blurRadius: 20,
                                 offset: const Offset(0, 10),
                               ),
@@ -141,7 +130,9 @@ class _RegisterPageState extends State<RegisterPage>
                                   borderRadius: BorderRadius.circular(20),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: AppColors.primaryOrange.withOpacity(0.3),
+                                      color: AppColors.primaryOrange.withValues(
+                                        alpha: 0.3,
+                                      ),
                                       blurRadius: 15,
                                       offset: const Offset(0, 5),
                                     ),
@@ -176,18 +167,18 @@ class _RegisterPageState extends State<RegisterPage>
                             ],
                           ),
                         ),
-                        
+
                         const SizedBox(height: 30),
 
                         // Registration Form
                         Container(
                           padding: const EdgeInsets.all(30),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.95),
+                            color: Colors.white.withValues(alpha: 0.95),
                             borderRadius: BorderRadius.circular(25),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
+                                color: Colors.black.withValues(alpha: 0.1),
                                 blurRadius: 25,
                                 offset: const Offset(0, 15),
                               ),
@@ -228,7 +219,7 @@ class _RegisterPageState extends State<RegisterPage>
                                     ],
                                   ),
                                 ),
-                                
+
                                 const SizedBox(height: 25),
 
                                 // Full Name Field
@@ -261,8 +252,9 @@ class _RegisterPageState extends State<RegisterPage>
                                     if (value == null || value.isEmpty) {
                                       return 'Please enter your email';
                                     }
-                                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                                        .hasMatch(value)) {
+                                    if (!RegExp(
+                                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                                    ).hasMatch(value)) {
                                       return 'Please enter a valid email address';
                                     }
                                     return null;
@@ -298,8 +290,9 @@ class _RegisterPageState extends State<RegisterPage>
                                     if (value.length < 6) {
                                       return 'Password must be at least 6 characters';
                                     }
-                                    if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
-                                        .hasMatch(value)) {
+                                    if (!RegExp(
+                                      r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$',
+                                    ).hasMatch(value)) {
                                       return 'Password must include uppercase, lowercase, number & special character';
                                     }
                                     return null;
@@ -324,7 +317,8 @@ class _RegisterPageState extends State<RegisterPage>
                                     ),
                                     onPressed: () {
                                       setState(() {
-                                        _obscureConfirmPassword = !_obscureConfirmPassword;
+                                        _obscureConfirmPassword =
+                                            !_obscureConfirmPassword;
                                       });
                                     },
                                   ),
@@ -350,7 +344,8 @@ class _RegisterPageState extends State<RegisterPage>
                                     borderRadius: BorderRadius.circular(28),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: AppColors.primaryOrange.withOpacity(0.4),
+                                        color: AppColors.primaryOrange
+                                            .withValues(alpha: 0.4),
                                         blurRadius: 15,
                                         offset: const Offset(0, 6),
                                       ),
@@ -363,7 +358,8 @@ class _RegisterPageState extends State<RegisterPage>
                                       onTap: _onNextPressed,
                                       child: const Center(
                                         child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
                                           children: [
                                             Text(
                                               'Next: Profile Setup',
@@ -391,10 +387,14 @@ class _RegisterPageState extends State<RegisterPage>
                                 Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
-                                    color: AppColors.sunYellow.withOpacity(0.1),
+                                    color: AppColors.sunYellow.withValues(
+                                      alpha: 0.1,
+                                    ),
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: AppColors.sunYellow.withOpacity(0.3),
+                                      color: AppColors.sunYellow.withValues(
+                                        alpha: 0.3,
+                                      ),
                                     ),
                                   ),
                                   child: Row(
@@ -434,7 +434,7 @@ class _RegisterPageState extends State<RegisterPage>
                               Text(
                                 'Already have an account? ',
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.9),
+                                  color: Colors.white.withValues(alpha: 0.9),
                                   fontSize: 16,
                                 ),
                               ),
@@ -446,7 +446,7 @@ class _RegisterPageState extends State<RegisterPage>
                                     vertical: 8,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.9),
+                                    color: Colors.white.withValues(alpha: 0.9),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: const Text(
@@ -503,7 +503,7 @@ class _RegisterPageState extends State<RegisterPage>
             color: AppColors.lightGray,
             borderRadius: BorderRadius.circular(15),
             border: Border.all(
-              color: AppColors.primaryTeal.withOpacity(0.2),
+              color: AppColors.primaryTeal.withValues(alpha: 0.2),
             ),
           ),
           child: TextFormField(
@@ -511,20 +511,13 @@ class _RegisterPageState extends State<RegisterPage>
             validator: validator,
             keyboardType: keyboardType,
             obscureText: obscureText,
-            style: const TextStyle(
-              color: AppColors.darkGray,
-              fontSize: 16,
-            ),
+            style: const TextStyle(color: AppColors.darkGray, fontSize: 16),
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: TextStyle(
-                color: AppColors.mediumGray.withOpacity(0.7),
+                color: AppColors.mediumGray.withValues(alpha: 0.7),
               ),
-              prefixIcon: Icon(
-                icon,
-                color: AppColors.primaryTeal,
-                size: 22,
-              ),
+              prefixIcon: Icon(icon, color: AppColors.primaryTeal, size: 22),
               suffixIcon: suffixIcon,
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(

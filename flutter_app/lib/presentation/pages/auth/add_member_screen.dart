@@ -14,8 +14,8 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
   String _selectedAvatar = '';
   String _selectedGender = '';
   DateTime? _selectedBirthday;
-  List<String> _selectedInterests = [];
-  
+  final List<String> _selectedInterests = [];
+
   final TextEditingController _nicknameController = TextEditingController();
   final TextEditingController _birthdayController = TextEditingController();
 
@@ -23,9 +23,17 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
   final List<Map<String, dynamic>> _childAvatars = [
     {'id': 'child1', 'icon': Icons.child_care, 'color': AppColors.primaryPink},
     {'id': 'child2', 'icon': Icons.school, 'color': AppColors.primaryBlue},
-    {'id': 'child3', 'icon': Icons.sports_soccer, 'color': AppColors.primaryGreen},
+    {
+      'id': 'child3',
+      'icon': Icons.sports_soccer,
+      'color': AppColors.primaryGreen,
+    },
     {'id': 'child4', 'icon': Icons.palette, 'color': AppColors.primaryPurple},
-    {'id': 'child5', 'icon': Icons.music_note, 'color': AppColors.primaryOrange},
+    {
+      'id': 'child5',
+      'icon': Icons.music_note,
+      'color': AppColors.primaryOrange,
+    },
     {'id': 'child6', 'icon': Icons.computer, 'color': AppColors.primaryTeal},
   ];
 
@@ -38,11 +46,26 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
 
   // Interest options for children
   final List<String> _childInterests = [
-    '⚽ Sports & Games', '🎨 Arts & Crafts', '📚 Reading & Stories', '🎵 Music & Dance',
-    '🔬 Science & Experiments', '🎮 Video Games', '🌳 Outdoor Adventures', '🍳 Cooking & Baking',
-    '🐶 Animals & Pets', '🔧 Building & Making', '📸 Photography', '✏️ Drawing & Painting',
-    '🎲 Board Games', '🏊 Swimming', '🏃 Running & Fitness', '💻 Technology',
-    '🌱 Gardening', '🎬 Movies & Shows', '🧩 Puzzles', '🚀 Space & Astronomy',
+    '⚽ Sports & Games',
+    '🎨 Arts & Crafts',
+    '📚 Reading & Stories',
+    '🎵 Music & Dance',
+    '🔬 Science & Experiments',
+    '🎮 Video Games',
+    '🌳 Outdoor Adventures',
+    '🍳 Cooking & Baking',
+    '🐶 Animals & Pets',
+    '🔧 Building & Making',
+    '📸 Photography',
+    '✏️ Drawing & Painting',
+    '🎲 Board Games',
+    '🏊 Swimming',
+    '🏃 Running & Fitness',
+    '💻 Technology',
+    '🌱 Gardening',
+    '🎬 Movies & Shows',
+    '🧩 Puzzles',
+    '🚀 Space & Astronomy',
   ];
 
   bool _isFormValid() {
@@ -110,18 +133,20 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    Container(
+                    SizedBox(
                       height: 300,
                       child: ListView.builder(
                         itemCount: _childInterests.length,
                         itemBuilder: (context, index) {
                           final interest = _childInterests[index];
-                          final isSelected = _selectedInterests.contains(interest);
+                          final isSelected = _selectedInterests.contains(
+                            interest,
+                          );
 
                           return Container(
                             margin: const EdgeInsets.only(bottom: 8),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.9),
+                              color: Colors.white.withValues(alpha: 0.9),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: CheckboxListTile(
@@ -238,7 +263,7 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Column(
@@ -315,35 +340,57 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
                     height: 80,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      itemCount: _memberType == 'Child' ? _childAvatars.length : _parentAvatars.length,
+                      itemCount:
+                          _memberType == 'Child'
+                              ? _childAvatars.length
+                              : _parentAvatars.length,
                       itemBuilder: (context, index) {
-                        final avatars = _memberType == 'Child' ? _childAvatars : _parentAvatars;
+                        final avatars =
+                            _memberType == 'Child'
+                                ? _childAvatars
+                                : _parentAvatars;
                         final avatar = avatars[index];
                         final isSelected = _selectedAvatar == avatar['id'];
 
                         return GestureDetector(
-                          onTap: () => setState(() => _selectedAvatar = avatar['id']),
+                          onTap:
+                              () => setState(
+                                () => _selectedAvatar = avatar['id'],
+                              ),
                           child: Container(
                             width: 70,
                             height: 70,
                             margin: const EdgeInsets.only(right: 12),
                             decoration: BoxDecoration(
-                              gradient: isSelected
-                                  ? LinearGradient(
-                                      colors: [avatar['color'], avatar['color'].withOpacity(0.7)],
-                                    )
-                                  : null,
-                              color: isSelected ? null : Colors.white.withOpacity(0.9),
+                              gradient:
+                                  isSelected
+                                      ? LinearGradient(
+                                        colors: [
+                                          avatar['color'],
+                                          avatar['color'].withValues(
+                                            alpha: 0.7,
+                                          ),
+                                        ],
+                                      )
+                                      : null,
+                              color:
+                                  isSelected
+                                      ? null
+                                      : Colors.white.withValues(alpha: 0.9),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: isSelected ? Colors.white : Colors.transparent,
+                                color:
+                                    isSelected
+                                        ? Colors.white
+                                        : Colors.transparent,
                                 width: 2,
                               ),
                             ),
                             child: Icon(
                               avatar['icon'],
                               size: 35,
-                              color: isSelected ? Colors.white : avatar['color'],
+                              color:
+                                  isSelected ? Colors.white : avatar['color'],
                             ),
                           ),
                         );
@@ -365,7 +412,7 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
                   const SizedBox(height: 12),
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: TextField(
@@ -398,10 +445,13 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: _selectedBirthday != null ? AppColors.primaryTeal : Colors.transparent,
+                          color:
+                              _selectedBirthday != null
+                                  ? AppColors.primaryTeal
+                                  : Colors.transparent,
                           width: 2,
                         ),
                       ),
@@ -409,16 +459,24 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
                         children: [
                           Expanded(
                             child: Text(
-                              _birthdayController.text.isEmpty ? 'mm/dd/yyyy' : _birthdayController.text,
+                              _birthdayController.text.isEmpty
+                                  ? 'mm/dd/yyyy'
+                                  : _birthdayController.text,
                               style: TextStyle(
-                                color: _birthdayController.text.isEmpty ? AppColors.mediumGray : AppColors.darkGray,
+                                color:
+                                    _birthdayController.text.isEmpty
+                                        ? AppColors.mediumGray
+                                        : AppColors.darkGray,
                                 fontSize: 16,
                               ),
                             ),
                           ),
                           Icon(
                             Icons.calendar_today,
-                            color: _selectedBirthday != null ? AppColors.primaryTeal : AppColors.mediumGray,
+                            color:
+                                _selectedBirthday != null
+                                    ? AppColors.primaryTeal
+                                    : AppColors.mediumGray,
                             size: 20,
                           ),
                         ],
@@ -476,10 +534,13 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: _selectedInterests.isNotEmpty ? AppColors.primaryTeal : Colors.transparent,
+                            color:
+                                _selectedInterests.isNotEmpty
+                                    ? AppColors.primaryTeal
+                                    : Colors.transparent,
                             width: 2,
                           ),
                         ),
@@ -491,14 +552,20 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
                                     ? 'Select interests for the child'
                                     : '${_selectedInterests.length} interests selected',
                                 style: TextStyle(
-                                  color: _selectedInterests.isEmpty ? AppColors.mediumGray : AppColors.darkGray,
+                                  color:
+                                      _selectedInterests.isEmpty
+                                          ? AppColors.mediumGray
+                                          : AppColors.darkGray,
                                   fontSize: 16,
                                 ),
                               ),
                             ),
                             Icon(
                               Icons.arrow_drop_down,
-                              color: _selectedInterests.isNotEmpty ? AppColors.primaryTeal : AppColors.mediumGray,
+                              color:
+                                  _selectedInterests.isNotEmpty
+                                      ? AppColors.primaryTeal
+                                      : AppColors.mediumGray,
                             ),
                           ],
                         ),
@@ -510,23 +577,27 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: _selectedInterests.take(3).map((interest) {
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              gradient: AppColors.sunsetGradient,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Text(
-                              interest,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          );
-                        }).toList(),
+                        children:
+                            _selectedInterests.take(3).map((interest) {
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  gradient: AppColors.sunsetGradient,
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Text(
+                                  interest,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
                       ),
                       if (_selectedInterests.length > 3)
                         Padding(
@@ -551,9 +622,12 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
                         child: Container(
                           height: 56,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha: 0.9),
                             borderRadius: BorderRadius.circular(28),
-                            border: Border.all(color: AppColors.primaryTeal, width: 2),
+                            border: Border.all(
+                              color: AppColors.primaryTeal,
+                              width: 2,
+                            ),
                           ),
                           child: Material(
                             color: Colors.transparent,
@@ -579,7 +653,10 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
                         child: Container(
                           height: 56,
                           decoration: BoxDecoration(
-                            gradient: _isFormValid() ? AppColors.sunsetGradient : null,
+                            gradient:
+                                _isFormValid()
+                                    ? AppColors.sunsetGradient
+                                    : null,
                             color: _isFormValid() ? null : Colors.grey,
                             borderRadius: BorderRadius.circular(28),
                           ),
@@ -637,12 +714,13 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
       child: Container(
         height: 80,
         decoration: BoxDecoration(
-          gradient: isSelected
-              ? LinearGradient(
-                  colors: [color, color.withOpacity(0.7)],
-                )
-              : null,
-          color: isSelected ? null : Colors.white.withOpacity(0.9),
+          gradient:
+              isSelected
+                  ? LinearGradient(
+                    colors: [color, color.withValues(alpha: 0.7)],
+                  )
+                  : null,
+          color: isSelected ? null : Colors.white.withValues(alpha: 0.9),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? Colors.white : Colors.transparent,
@@ -676,12 +754,13 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
       child: Container(
         height: 70,
         decoration: BoxDecoration(
-          gradient: isSelected
-              ? LinearGradient(
-                  colors: [color, color.withOpacity(0.7)],
-                )
-              : null,
-          color: isSelected ? null : Colors.white.withOpacity(0.9),
+          gradient:
+              isSelected
+                  ? LinearGradient(
+                    colors: [color, color.withValues(alpha: 0.7)],
+                  )
+                  : null,
+          color: isSelected ? null : Colors.white.withValues(alpha: 0.9),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? Colors.white : Colors.transparent,

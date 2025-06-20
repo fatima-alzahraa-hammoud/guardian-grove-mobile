@@ -14,14 +14,12 @@ void main() async {
   // Initialize dependency injection
   await di.init();
   // Initialize API client
-  ApiClient().init();
-
-  // Test backend connectivity (optional - for debugging)
+  ApiClient().init(); // Test backend connectivity (optional - for debugging)
   try {
-    final isConnected = await ApiClient().testConnection();
-    print('Backend connection status: ${isConnected ? "Connected" : "Failed"}');
+    await ApiClient().testConnection();
+    // Connection test completed silently
   } catch (e) {
-    print('Backend connection test error: $e');
+    // Connection test failed silently
   }
 
   // Set up BLoC observer for debugging
