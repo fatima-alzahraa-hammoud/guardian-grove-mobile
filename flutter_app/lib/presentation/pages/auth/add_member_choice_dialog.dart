@@ -1,106 +1,178 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_colors.dart';
 import '../home/home_page.dart';
 import 'add_member_screen.dart';
 
 class AddMemberChoiceDialog extends StatelessWidget {
   const AddMemberChoiceDialog({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.transparent,
       child: Container(
-        padding: const EdgeInsets.all(24),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
+          maxWidth: MediaQuery.of(context).size.width * 0.9,
+        ),
+        padding: const EdgeInsets.all(28),
         decoration: BoxDecoration(
-          gradient: AppColors.childishGradient,
-          borderRadius: BorderRadius.circular(25),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.2),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 20,
-              offset: const Offset(0, 10),
+              offset: const Offset(0, 8),
             ),
           ],
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Header with fun icon
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header with logo
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8F9FE),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFFE2E8F0), width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0EA5E9).withValues(alpha: 0.1),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  width: 50,
+                  height: 50,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(
+                      Icons.eco_rounded,
+                      size: 50,
+                      color: Color(0xFF4CAF50),
+                    );
+                  },
+                ),
               ),
-              child: const Icon(
-                Icons.family_restroom,
-                size: 40,
-                color: AppColors.primaryTeal,
-              ),
-            ),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
-            // Title
-            const Text(
-              '🎉 Welcome to Guardian Grove! 🎉',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-              textAlign: TextAlign.center,
-            ),
-
-            const SizedBox(height: 12),
-            // Subtitle
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.9),
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: const Text(
-                'Would you like to add family members now to start your adventure together?',
+              // Title
+              const Text(
+                'Welcome to Guardian Grove!',
                 style: TextStyle(
-                  fontSize: 16,
-                  color: AppColors.darkGray,
-                  height: 1.4,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1A202C),
                 ),
                 textAlign: TextAlign.center,
               ),
-            ),
 
-            const SizedBox(height: 30),
+              const SizedBox(height: 16),
 
-            // Action buttons
-            Row(
-              children: [
-                // No, Later button
-                Expanded(
-                  child: Container(
-                    height: 50,
+              // Subtitle
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8F9FE),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: const Text(
+                  'Would you like to add family members now to start your adventure together?',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF64748B),
+                    height: 1.4,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+
+              const SizedBox(height: 32), // Action buttons
+              Column(
+                children: [
+                  // Add Members button (primary action first)
+                  Container(
+                    width: double.infinity,
+                    height: 52,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.9),
-                      borderRadius: BorderRadius.circular(25),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF0EA5E9), Color(0xFF0284C7)],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: BorderRadius.circular(26),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF0EA5E9).withValues(alpha: 0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(26),
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (context) => const AddMemberScreen(),
+                            ),
+                            (route) => false,
+                          );
+                        },
+                        child: const Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.group_add_rounded,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                'Add Members',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Later button (secondary action)
+                  Container(
+                    width: double.infinity,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(26),
                       border: Border.all(
-                        color: AppColors.primaryTeal,
+                        color: const Color(0xFF0EA5E9),
                         width: 2,
                       ),
                     ),
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        borderRadius: BorderRadius.circular(25),
+                        borderRadius: BorderRadius.circular(26),
                         onTap: () {
                           Navigator.of(context).pop();
                           Navigator.of(context).pushAndRemoveUntil(
@@ -112,97 +184,54 @@ class AddMemberChoiceDialog extends StatelessWidget {
                         },
                         child: const Center(
                           child: Text(
-                            'Later 😊',
+                            'Later',
                             style: TextStyle(
-                              color: AppColors.primaryTeal,
+                              color: Color(0xFF0EA5E9),
                               fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(width: 16),
-
-                // Yes, Add Members button
-                Expanded(
-                  child: Container(
-                    height: 50,
-                    decoration: BoxDecoration(
-                      gradient: AppColors.sunsetGradient,
-                      borderRadius: BorderRadius.circular(25),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primaryOrange.withValues(alpha: 0.3),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(25),
-                        onTap: () {
-                          Navigator.of(context).pop();
-                          Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(
-                              builder: (context) => const AddMemberScreen(),
-                            ),
-                            (route) => false,
-                          );
-                        },
-                        child: const Center(
-                          child: Text(
-                            'Yes! 🚀',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            // Info text
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.sunYellow.withValues(alpha: 0.9),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.info_outline,
-                    color: AppColors.darkGray,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Don\'t worry! You can always add family members later from your profile.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.darkGray,
-                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
+
+              const SizedBox(height: 20),
+
+              // Info notice
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF7ED),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFFED7AA)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline_rounded,
+                      color: Colors.orange[600],
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Don\'t worry! You can always add family members later from your profile.',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.orange[800],
+                          fontWeight: FontWeight.w500,
+                          height: 1.3,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
