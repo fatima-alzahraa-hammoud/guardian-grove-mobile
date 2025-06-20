@@ -3,12 +3,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'app/app.dart';
 import 'core/network/api_client.dart';
 import 'core/services/storage_service.dart';
+import 'injection_container.dart' as di;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Initialize storage service
   await StorageService.init();
+  
+  // Initialize dependency injection
+  await di.init();
   
   // Initialize API client
   ApiClient().init();
