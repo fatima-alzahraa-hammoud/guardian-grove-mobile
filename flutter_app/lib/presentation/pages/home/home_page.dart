@@ -51,18 +51,8 @@ class HomePage extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      Color.fromARGB(
-                        26,
-                        (Colors.deepPurple.r * 255).round(),
-                        (Colors.deepPurple.g * 255).round(),
-                        (Colors.deepPurple.b * 255).round(),
-                      ),
-                      Color.fromARGB(
-                        13,
-                        (Colors.purple.r * 255).round(),
-                        (Colors.purple.g * 255).round(),
-                        (Colors.purple.b * 255).round(),
-                      ),
+                      Colors.deepPurple.withValues(alpha: 0.1),
+                      Colors.purple.withValues(alpha: 0.05),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -278,21 +268,9 @@ class HomePage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Color.fromARGB(
-          26,
-          (color.r * 255).round(),
-          (color.g * 255).round(),
-          (color.b * 255).round(),
-        ),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: Color.fromARGB(
-            77,
-            (color.r * 255).round(),
-            (color.g * 255).round(),
-            (color.b * 255).round(),
-          ),
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -330,12 +308,7 @@ class HomePage extends StatelessWidget {
           border: Border.all(color: Colors.grey[300]!),
           boxShadow: [
             BoxShadow(
-              color: Color.fromARGB(
-                26,
-                (Colors.grey.r * 255).round(),
-                (Colors.grey.g * 255).round(),
-                (Colors.grey.b * 255).round(),
-              ),
+              color: Colors.grey.withValues(alpha: 0.1),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
