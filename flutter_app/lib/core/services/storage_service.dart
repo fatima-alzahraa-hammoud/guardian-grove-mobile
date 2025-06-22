@@ -5,7 +5,7 @@ import '../../data/models/user_model.dart';
 
 class StorageService {
   static SharedPreferences? _prefs;
-  
+
   static Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
   }
@@ -60,5 +60,11 @@ class StorageService {
   static bool isLoggedIn() {
     final token = getToken();
     return token != null && token.isNotEmpty;
+  }
+
+  // Get current user's family ID
+  static String? getFamilyId() {
+    final user = getUser();
+    return user?.familyId;
   }
 }

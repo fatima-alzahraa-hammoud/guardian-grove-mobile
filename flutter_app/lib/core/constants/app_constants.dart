@@ -27,6 +27,14 @@ class AppConstants {
   static const String loginEndpoint = '/auth/login';
   static const String registerEndpoint = '/auth/register';
   static const String forgotPasswordEndpoint = '/auth/forget-password';
+  // Leaderboard Endpoints
+  static const String leaderboardEndpoint =
+      '/family/leaderboard'; // Main endpoint like React version
+  static const String familyLeaderboardEndpoint = '/family/familyLeaderboard';
+  static const String familiesEndpoint = '/families';
+  static const String currentFamilyRankEndpoint = '/leaderboard/my-family';
+  static const String familyProgressStatsEndpoint =
+      '/family/familyProgressStats';
 
   // Storage Keys
   static const String tokenKey = 'auth_token';

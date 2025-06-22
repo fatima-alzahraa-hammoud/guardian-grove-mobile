@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_app/data/datasources/remote/leaderboard_remote.dart';
+import 'package:flutter_app/data/datasources/remote/leaderboard_remote_backend.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
-import '../../../data/models/leaderboard_model.dart';
+import '../../../data/models/leaderboard_model.dart' as legacy;
 import '../../../core/services/storage_service.dart';
 
 // Events
@@ -30,8 +30,8 @@ class LeaderboardInitial extends LeaderboardState {}
 class LeaderboardLoading extends LeaderboardState {}
 
 class LeaderboardLoaded extends LeaderboardState {
-  final List<LeaderboardFamily> families;
-  final LeaderboardFamily? currentFamily;
+  final List<legacy.LeaderboardFamily> families;
+  final legacy.LeaderboardFamily? currentFamily;
   final bool isCurrentFamilyInTop20;
 
   const LeaderboardLoaded({
@@ -62,7 +62,6 @@ class LeaderboardBloc extends Bloc<LeaderboardEvent, LeaderboardState> {
     on<LoadLeaderboard>(_onLoadLeaderboard);
     on<RefreshLeaderboard>(_onRefreshLeaderboard);
   }
-
   Future<void> _onLoadLeaderboard(
     LoadLeaderboard event,
     Emitter<LeaderboardState> emit,
@@ -72,13 +71,13 @@ class LeaderboardBloc extends Bloc<LeaderboardEvent, LeaderboardState> {
 
     try {
       // Get leaderboard data from the backend
-      final families = await leaderboardDataSource.getLeaderboard();
+      final families = await leaderboardDataSource.getLeaderboard(limit: 20);
 
       // Find current user's family
       final currentUser = StorageService.getUser();
       final currentUserFamilyId = currentUser?.familyId;
 
-      LeaderboardFamily? currentFamily;
+      legacy.LeaderboardFamily? currentFamily;
       bool isCurrentFamilyInTop20 = false;
 
       if (currentUserFamilyId != null) {
@@ -122,18 +121,18 @@ class LeaderboardBloc extends Bloc<LeaderboardEvent, LeaderboardState> {
     RefreshLeaderboard event,
     Emitter<LeaderboardState> emit,
   ) async {
-    debugPrint('🔄 Refreshing leaderboard data...');
-
-    // Don't show loading state on refresh to avoid UI flicker
+    debugPrint(
+      '🔄 Refreshing leaderboard data...',
+    ); // Don't show loading state on refresh to avoid UI flicker
     try {
       // Get leaderboard data from the backend
-      final families = await leaderboardDataSource.getLeaderboard();
+      final families = await leaderboardDataSource.getLeaderboard(limit: 20);
 
       // Find current user's family
       final currentUser = StorageService.getUser();
       final currentUserFamilyId = currentUser?.familyId;
 
-      LeaderboardFamily? currentFamily;
+      legacy.LeaderboardFamily? currentFamily;
       bool isCurrentFamilyInTop20 = false;
 
       if (currentUserFamilyId != null) {

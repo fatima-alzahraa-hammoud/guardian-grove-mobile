@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../bloc/leaderboard/leaderboard_bloc.dart';
-import '../../../data/models/leaderboard_model.dart';
+import '../../bloc/leaderboard/time_based_leaderboard_bloc.dart';
+import '../../../data/models/time_based_leaderboard_model.dart';
+import '../../widgets/leaderboard_item.dart';
+import '../../widgets/progress_bar.dart';
+import '../../widgets/family_dialog.dart';
 import '../../../injection_container.dart' as di;
 
 class LeaderboardScreen extends StatelessWidget {
@@ -10,7 +13,10 @@ class LeaderboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => di.sl<LeaderboardBloc>()..add(LoadLeaderboard()),
+      create:
+          (context) =>
+              di.sl<TimeBasedLeaderboardBloc>()
+                ..add(LoadTimeBasedLeaderboard()),
       child: const LeaderboardView(),
     );
   }
@@ -23,15 +29,13 @@ class LeaderboardView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FE),
-      body: BlocBuilder<LeaderboardBloc, LeaderboardState>(
+      body: BlocBuilder<TimeBasedLeaderboardBloc, TimeBasedLeaderboardState>(
         builder: (context, state) {
-          if (state is LeaderboardLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: Color(0xFF0EA5E9)),
-            );
-          } else if (state is LeaderboardError) {
+          if (state is TimeBasedLeaderboardLoading) {
+            return _buildLoadingState();
+          } else if (state is TimeBasedLeaderboardError) {
             return _buildErrorState(context, state.message);
-          } else if (state is LeaderboardLoaded) {
+          } else if (state is TimeBasedLeaderboardLoaded) {
             return _buildLeaderboardContent(context, state);
           }
           return const SizedBox.shrink();
@@ -40,53 +44,148 @@ class LeaderboardView extends StatelessWidget {
     );
   }
 
+  Widget _buildLoadingState() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF0EA5E9), Color(0xFF0284C7)],
+        ),
+      ),
+      child: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 56,
+              height: 56,
+              child: CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 4,
+              ),
+            ),
+            SizedBox(height: 32),
+            Text(
+              'Loading Leaderboard...',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.3,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Preparing your family rankings',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildErrorState(BuildContext context, String message) {
-    return Center(
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
-            Icons.error_outline_rounded,
-            size: 80,
-            color: Color(0xFFEF4444),
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEF4444).withValues(alpha: 0.08),
+              shape: BoxShape.circle,
+            ),
+            child: Container(
+              margin: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEF4444).withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.error_outline_rounded,
+                size: 40,
+                color: Color(0xFFEF4444),
+              ),
+            ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 32),
           const Text(
             'Oops! Something went wrong',
             style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
               color: Color(0xFF1A202C),
+              letterSpacing: -0.5,
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            message,
-            style: const TextStyle(fontSize: 14, color: Color(0xFF64748B)),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: const TextStyle(
+              fontSize: 16,
+              color: Color(0xFF64748B),
+              height: 1.6,
+              fontWeight: FontWeight.w400,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 40),
           Container(
             decoration: BoxDecoration(
-              color: const Color(0xFF0EA5E9),
-              borderRadius: BorderRadius.circular(24),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0EA5E9), Color(0xFF0284C7)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF0EA5E9).withValues(alpha: 0.25),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
             child: Material(
               color: Colors.transparent,
               child: InkWell(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(28),
                 onTap: () {
-                  context.read<LeaderboardBloc>().add(LoadLeaderboard());
+                  context.read<TimeBasedLeaderboardBloc>().add(
+                    RefreshTimeBasedLeaderboard(),
+                  );
                 },
                 child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  child: Text(
-                    'Try Again',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 18),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.refresh_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      SizedBox(width: 12),
+                      Text(
+                        'Try Again',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -99,149 +198,698 @@ class LeaderboardView extends StatelessWidget {
 
   Widget _buildLeaderboardContent(
     BuildContext context,
-    LeaderboardLoaded state,
+    TimeBasedLeaderboardLoaded state,
   ) {
     return RefreshIndicator(
       onRefresh: () async {
-        context.read<LeaderboardBloc>().add(RefreshLeaderboard());
+        context.read<TimeBasedLeaderboardBloc>().add(
+          RefreshTimeBasedLeaderboard(),
+        );
       },
       color: const Color(0xFF0EA5E9),
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Top 3 Podium
-            if (state.families.isNotEmpty) ...[
-              _buildPodiumSection(state.families.take(3).toList()),
-              const SizedBox(height: 32),
-            ], // Your Family Rank Card (only show if current family is NOT in top 20)
-            if (state.currentFamily != null &&
-                !state.isCurrentFamilyInTop20) ...[
-              _buildYourRankCard(state.currentFamily!),
-              const SizedBox(height: 24),
-            ],
-
-            // Leaderboard Title
-            const Text(
-              'Family Rankings',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1A202C),
-              ),
-            ),
-            const SizedBox(height: 16), // Leaderboard List
-            if (state.families.isNotEmpty)
-              ...state.families.asMap().entries.map((entry) {
-                final index = entry.key;
-                final family = entry.value;
-                final isCurrentFamily =
-                    family.familyId == state.currentFamily?.familyId;
-
-                // Add separator before current family if it's not in top 20 (appears at bottom)
-                final shouldShowSeparator =
-                    isCurrentFamily &&
-                    !state.isCurrentFamilyInTop20 &&
-                    index == state.families.length - 1;
-
-                return Column(
-                  children: [
-                    // Add separator before current family at bottom
-                    if (shouldShowSeparator) ...[
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(child: Divider(color: Colors.grey.shade300)),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Text(
-                              'Your Family',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.grey.shade600,
+      strokeWidth: 3,
+      child: CustomScrollView(
+        slivers: [
+          // Enhanced App Bar
+          SliverAppBar(
+            expandedHeight: 160.0,
+            floating: false,
+            pinned: true,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF0EA5E9), Color(0xFF0284C7)],
+                  ),
+                ),
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(28, 20, 28, 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.emoji_events_rounded,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 20),
+                            const Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Family Leaderboard',
+                                    style: TextStyle(
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white,
+                                      height: 1.1,
+                                      letterSpacing: -0.5,
+                                    ),
+                                  ),
+                                  SizedBox(height: 6),
+                                  Text(
+                                    'Shine together! See how your family ranks',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.white70,
+                                      fontWeight: FontWeight.w500,
+                                      height: 1.3,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        if (state.currentFamily != null)
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.25),
+                              ),
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(20),
+                                onTap:
+                                    () => _showYourAchievements(
+                                      context,
+                                      state.currentFamily!,
+                                    ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.stars_rounded,
+                                        color: Colors.white,
+                                        size: 16,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Flexible(
+                                        child: Text(
+                                          'View Achievements',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            letterSpacing: 0.2,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                          Expanded(child: Divider(color: Colors.grey.shade300)),
-                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Time frame selector section
+          SliverToBoxAdapter(
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(28, 24, 28, 20),
+              child: _buildTimeFrameSelector(context, state.currentTimeFrame),
+            ),
+          ),
+
+          // Motivational message
+          if (state.motivationalMessage.isNotEmpty)
+            SliverToBoxAdapter(
+              child: _buildMotivationalMessage(state.motivationalMessage),
+            ),
+
+          // Progress stats
+          if (state.progressStats != null)
+            SliverToBoxAdapter(
+              child: _buildProgressStats(state.progressStats!),
+            ),
+
+          // Current family rank
+          if (state.currentFamily != null)
+            SliverToBoxAdapter(child: _buildYourRankCard(state.currentFamily!)),
+
+          // Podium section (top 3)
+          if (state.currentLeaderboard.isNotEmpty)
+            SliverToBoxAdapter(
+              child: _buildPodiumSection(
+                context,
+                state.currentLeaderboard.take(3).toList(),
+              ),
+            ),
+
+          // Section header for remaining families
+          if (state.currentLeaderboard.length > 3)
+            SliverToBoxAdapter(
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(28, 32, 28, 20),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF64748B).withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      const SizedBox(height: 8),
-                    ],
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: _buildLeaderboardRow(
-                        family,
-                        state.currentFamily?.familyId,
+                      child: const Icon(
+                        Icons.people_rounded,
+                        color: Color(0xFF64748B),
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Text(
+                      'Other Families',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1A202C),
+                        letterSpacing: -0.3,
                       ),
                     ),
                   ],
+                ),
+              ),
+            ),
+
+          // Remaining families list
+          if (state.currentLeaderboard.length > 3)
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final familyIndex = index + 3;
+                  if (familyIndex >= state.currentLeaderboard.length) {
+                    return const SizedBox.shrink();
+                  }
+                  final family = state.currentLeaderboard[familyIndex];
+                  return Container(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 28,
+                      vertical: 8,
+                    ),
+                    child: LeaderboardItem(
+                      family: family,
+                      position: index + 4,
+                      isCurrentFamily:
+                          family.familyId == state.currentFamily?.familyId,
+                      onView: () => _showFamilyDialog(context, family),
+                    ),
+                  );
+                },
+                childCount:
+                    (state.currentLeaderboard.length - 3)
+                        .clamp(0, double.infinity)
+                        .toInt(),
+              ),
+            ),
+
+          // Bottom padding
+          const SliverToBoxAdapter(child: SizedBox(height: 120)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimeFrameSelector(
+    BuildContext context,
+    LeaderboardTimeFrame currentFrame,
+  ) {
+    return Container(
+      height: 48,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: Row(
+          children:
+              LeaderboardTimeFrame.values.map((frame) {
+                final isSelected = frame == currentFrame;
+                final isFirst = frame == LeaderboardTimeFrame.values.first;
+                final isLast = frame == LeaderboardTimeFrame.values.last;
+
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      context.read<TimeBasedLeaderboardBloc>().add(
+                        ChangeTimeFrame(frame),
+                      );
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeInOut,
+                      decoration: BoxDecoration(
+                        color:
+                            isSelected
+                                ? const Color(0xFF0EA5E9)
+                                : Colors.transparent,
+                        borderRadius: BorderRadius.horizontal(
+                          left:
+                              isFirst ? const Radius.circular(20) : Radius.zero,
+                          right:
+                              isLast ? const Radius.circular(20) : Radius.zero,
+                        ),
+                        boxShadow:
+                            isSelected
+                                ? [
+                                  BoxShadow(
+                                    color: const Color(
+                                      0xFF0EA5E9,
+                                    ).withValues(alpha: 0.25),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ]
+                                : null,
+                      ),
+                      child: Center(
+                        child: Text(
+                          frame.name.toUpperCase(),
+                          style: TextStyle(
+                            color:
+                                isSelected
+                                    ? Colors.white
+                                    : const Color(0xFF64748B),
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 );
-              })
-            else
-              _buildEmptyState(),
-          ],
+              }).toList(),
         ),
       ),
     );
   }
 
-  Widget _buildPodiumSection(List<LeaderboardFamily> topFamilies) {
+  Widget _buildMotivationalMessage(String message) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      margin: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+      padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF10B981), Color(0xFF059669)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: const Color(0xFF10B981).withValues(alpha: 0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Column(
         children: [
-          const Text(
-            '🏆 Top Families',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1A202C),
-            ),
+          Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: const Icon(
+                  Icons.celebration_rounded,
+                  color: Colors.white,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 20),
+              const Expanded(
+                child: Text(
+                  'Hooray!',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 20),
+          Text(
+            message,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w500,
+              fontSize: 16,
+              height: 1.5,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressStats(FamilyProgressStats stats) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0EA5E9).withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(
+                  Icons.trending_up_rounded,
+                  color: Color(0xFF0EA5E9),
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 20),
+              const Text(
+                'Family Progress',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF1A202C),
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 32),
+          ProgressBar(
+            label: 'Tasks Completed',
+            completed: stats.completedTasks,
+            total: stats.totalTasks,
+          ),
+          const SizedBox(height: 20),
+          ProgressBar(
+            label: 'Goals Achieved',
+            completed: stats.completedGoals,
+            total: stats.totalGoals,
+          ),
+          const SizedBox(height: 20),
+          ProgressBar(
+            label: 'Achievements Unlocked',
+            completed: stats.unlockedAchievements,
+            total: stats.totalAchievements,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildYourRankCard(LeaderboardFamily currentFamily) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF8B5CF6).withValues(alpha: 0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '#${currentFamily.rank}',
+                  style: const TextStyle(
+                    color: Color(0xFF8B5CF6),
+                    fontWeight: FontWeight.w800,
+                    fontSize: 20,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const Text(
+                  'RANK',
+                  style: TextStyle(
+                    color: Color(0xFF8B5CF6),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 9,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 24),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Your Family',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.8),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  currentFamily.familyName,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              // 2nd Place
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.star_rounded,
+                      color: Color(0xFFFBBF24),
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${currentFamily.stars}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 18,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                '${currentFamily.totalPoints} points',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.8),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPodiumSection(
+    BuildContext context,
+    List<LeaderboardFamily> topFamilies,
+  ) {
+    if (topFamilies.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF59E0B).withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(
+                    Icons.emoji_events_rounded,
+                    color: Color(0xFFF59E0B),
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 20),
+                const Text(
+                  'Top Families',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF1A202C),
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Fixed Podium with proper overflow handling
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              // Second place
               if (topFamilies.length > 1)
-                _buildPodiumItem(
-                  topFamilies[1],
-                  2,
-                  const Color(0xFF94A3B8),
-                  80,
+                Expanded(
+                  child: _buildPodiumItem(
+                    context,
+                    topFamilies[1],
+                    2,
+                    const Color(0xFFC0C0C0),
+                    isSecondPlace: true,
+                  ),
                 ),
-              // 1st Place
+
+              // First place (taller)
               if (topFamilies.isNotEmpty)
-                _buildPodiumItem(
-                  topFamilies[0],
-                  1,
-                  const Color(0xFFF59E0B),
-                  100,
+                Expanded(
+                  child: _buildPodiumItem(
+                    context,
+                    topFamilies[0],
+                    1,
+                    const Color(0xFFFFD700),
+                    isFirstPlace: true,
+                  ),
                 ),
-              // 3rd Place
+
+              // Third place
               if (topFamilies.length > 2)
-                _buildPodiumItem(
-                  topFamilies[2],
-                  3,
-                  const Color(0xFFCD7F32),
-                  60,
+                Expanded(
+                  child: _buildPodiumItem(
+                    context,
+                    topFamilies[2],
+                    3,
+                    const Color(0xFFCD7F32),
+                    isThirdPlace: true,
+                  ),
                 ),
             ],
           ),
@@ -251,439 +899,241 @@ class LeaderboardView extends StatelessWidget {
   }
 
   Widget _buildPodiumItem(
+    BuildContext context,
     LeaderboardFamily family,
     int position,
-    Color color,
-    double height,
-  ) {
-    return Column(
-      children: [
-        // Avatar
-        Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-            border: Border.all(color: color, width: 3),
-          ),
-          child: Center(
-            child:
-                family.familyAvatar.isNotEmpty
-                    ? ClipOval(
-                      child: Image.network(
-                        family.familyAvatar,
-                        width: 54,
-                        height: 54,
-                        fit: BoxFit.cover,
-                        errorBuilder:
-                            (context, error, stackTrace) =>
-                                _buildAvatarFallback(family.familyName),
-                      ),
-                    )
-                    : _buildAvatarFallback(family.familyName),
-          ),
-        ),
-        const SizedBox(height: 8),
-        // Family Name
-        Text(
-          family.familyName,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF1A202C),
-          ),
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 4),
-        // Points
-        Text(
-          '${family.totalPoints} pts',
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
-            color: color,
-          ),
-        ),
-        const SizedBox(height: 8),
-        // Podium
-        Container(
-          width: 40,
-          height: height,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-          ),
-          child: Center(
-            child: Text(
-              '$position',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildYourRankCard(LeaderboardFamily currentFamily) {
+    Color medalColor, {
+    bool isFirstPlace = false,
+    bool isSecondPlace = false,
+    bool isThirdPlace = false,
+  }) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF0EA5E9), Color(0xFF0284C7)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0EA5E9).withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Rank Badge
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              shape: BoxShape.circle,
+          // Crown for first place
+          if (isFirstPlace) ...[
+            const Icon(
+              Icons.workspace_premium_rounded,
+              color: Color(0xFFFFD700),
+              size: 24,
             ),
-            child: Center(
-              child: Text(
-                '#${currentFamily.rank}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          // Family Avatar
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child:
-                  currentFamily.familyAvatar.isNotEmpty
-                      ? ClipOval(
-                        child: Image.network(
-                          currentFamily.familyAvatar,
-                          width: 44,
-                          height: 44,
-                          fit: BoxFit.cover,
-                          errorBuilder:
-                              (context, error, stackTrace) =>
-                                  _buildAvatarFallback(
-                                    currentFamily.familyName,
-                                    true,
-                                  ),
-                        ),
-                      )
-                      : _buildAvatarFallback(currentFamily.familyName, true),
-            ),
-          ),
-          const SizedBox(width: 16),
-          // Family Info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Your Family',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                Text(
-                  currentFamily.familyName,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    _buildStatChip(
-                      Icons.star_rounded,
-                      '${currentFamily.stars}',
-                      true,
-                    ),
-                    const SizedBox(width: 8),
-                    _buildStatChip(
-                      Icons.monetization_on_rounded,
-                      '${currentFamily.coins}',
-                      true,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+            const SizedBox(height: 8),
+          ],
 
-  Widget _buildLeaderboardRow(
-    LeaderboardFamily family,
-    String? currentFamilyId,
-  ) {
-    final isCurrentFamily = family.familyId == currentFamilyId;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color:
-            isCurrentFamily
-                ? const Color(0xFF0EA5E9).withValues(alpha: 0.05)
-                : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color:
-              isCurrentFamily
-                  ? const Color(0xFF0EA5E9).withValues(alpha: 0.3)
-                  : const Color(0xFFE2E8F0),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Rank
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: _getRankColor(family.rank).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Center(
-              child: Text(
-                '${family.rank}',
-                style: TextStyle(
-                  color: _getRankColor(family.rank),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-
-          // Family Avatar
+          // Medal with position number
           Container(
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: const Color(0xFF0EA5E9).withValues(alpha: 0.1),
+              gradient: LinearGradient(
+                colors: [medalColor, medalColor.withValues(alpha: 0.8)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: medalColor.withValues(alpha: 0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Center(
-              child:
-                  family.familyAvatar.isNotEmpty
-                      ? ClipOval(
-                        child: Image.network(
-                          family.familyAvatar,
-                          width: 36,
-                          height: 36,
-                          fit: BoxFit.cover,
-                          errorBuilder:
-                              (context, error, stackTrace) =>
-                                  _buildAvatarFallback(family.familyName),
-                        ),
-                      )
-                      : _buildAvatarFallback(family.familyName),
+              child: Text(
+                '$position',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                  letterSpacing: -0.5,
+                ),
+              ),
             ),
           ),
-          const SizedBox(width: 12),
-
-          // Family Name & Members
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  family.familyName,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color:
-                        isCurrentFamily
-                            ? const Color(0xFF0EA5E9)
-                            : const Color(0xFF1A202C),
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+          const SizedBox(height: 8), // Family card with proper constraints
+          Container(
+            height: isFirstPlace ? 200 : (isSecondPlace ? 190 : 180),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color:
+                    position == 1
+                        ? const Color(0xFFFFD700).withValues(alpha: 0.3)
+                        : const Color(0xFFE2E8F0),
+                width: position == 1 ? 2 : 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color:
+                      position == 1
+                          ? const Color(0xFFFFD700).withValues(alpha: 0.1)
+                          : Colors.black.withValues(alpha: 0.03),
+                  blurRadius: position == 1 ? 12 : 6,
+                  offset:
+                      position == 1 ? const Offset(0, 4) : const Offset(0, 2),
                 ),
-                if (family.members.isNotEmpty)
-                  Text(
-                    '${family.members.length} members',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF64748B),
+              ],
+            ),
+            child: Column(
+              children: [
+                // Avatar
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0EA5E9).withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child:
+                      (family.familyAvatar.isNotEmpty)
+                          ? ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.network(
+                              family.familyAvatar,
+                              width: 36,
+                              height: 36,
+                              fit: BoxFit.cover,
+                              errorBuilder:
+                                  (context, error, stackTrace) => const Icon(
+                                    Icons.family_restroom_rounded,
+                                    color: Color(0xFF0EA5E9),
+                                    size: 20,
+                                  ),
+                            ),
+                          )
+                          : const Icon(
+                            Icons.family_restroom_rounded,
+                            color: Color(0xFF0EA5E9),
+                            size: 20,
+                          ),
+                ),
+                const SizedBox(height: 10),
+
+                // Family name
+                SizedBox(
+                  height: 36,
+                  child: Center(
+                    child: Text(
+                      family.familyName.isNotEmpty
+                          ? family.familyName
+                          : 'Unknown Family',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight:
+                            position == 1 ? FontWeight.w800 : FontWeight.w600,
+                        color: const Color(0xFF1A202C),
+                        letterSpacing: -0.2,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                ),
+
+                const SizedBox(height: 6),
+
+                // Stars badge - more compact
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF59E0B).withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.star_rounded,
+                        color: Color(0xFFF59E0B),
+                        size: 12,
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        '${family.stars}',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFFF59E0B),
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const Spacer(),
+
+                // View button - very compact to fit within boundaries
+                Container(
+                  width: double.infinity,
+                  height: 18,
+                  margin: const EdgeInsets.only(bottom: 4),
+                  child: ElevatedButton(
+                    onPressed: () => _showFamilyDialog(context, family),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF10B981),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      padding: EdgeInsets.zero,
+                      elevation: 0,
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: const Text(
+                      'View',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.1,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
-
-          // Stats
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.star_rounded,
-                    size: 16,
-                    color: _getRankColor(family.rank),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${family.stars}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: _getRankColor(family.rank),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.monetization_on_rounded,
-                    size: 16,
-                    color: _getRankColor(family.rank),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${family.coins}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: _getRankColor(family.rank),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildEmptyState() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(40),
-      child: const Column(
-        children: [
-          Icon(Icons.leaderboard_rounded, size: 80, color: Color(0xFFE2E8F0)),
-          SizedBox(height: 20),
-          Text(
-            'No families yet',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF64748B),
-            ),
+  void _showYourAchievements(
+    BuildContext context,
+    LeaderboardFamily currentFamily,
+  ) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => FamilyDialog(
+            family: currentFamily,
+            rank: currentFamily.rank,
+            totalStars: currentFamily.stars,
+            wonChallenges: currentFamily.totalPoints,
           ),
-          SizedBox(height: 8),
-          Text(
-            'Be the first family to join the leaderboard!',
-            style: TextStyle(fontSize: 14, color: Color(0xFF94A3B8)),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
     );
   }
 
-  Widget _buildAvatarFallback(String familyName, [bool isWhite = false]) {
-    return Text(
-      familyName.isNotEmpty ? familyName[0].toUpperCase() : 'F',
-      style: TextStyle(
-        color: isWhite ? Colors.white : const Color(0xFF0EA5E9),
-        fontSize: 16,
-        fontWeight: FontWeight.w700,
-      ),
-    );
-  }
-
-  Widget _buildStatChip(IconData icon, String value, [bool isWhite = false]) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color:
-            isWhite
-                ? Colors.white.withValues(alpha: 0.2)
-                : const Color(0xFFF8F9FE),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 12,
-            color: isWhite ? Colors.white : const Color(0xFF64748B),
+  void _showFamilyDialog(BuildContext context, LeaderboardFamily family) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => FamilyDialog(
+            family: family,
+            rank: family.rank,
+            totalStars: family.stars,
+            wonChallenges: family.totalPoints,
           ),
-          const SizedBox(width: 4),
-          Text(
-            value,
-            style: TextStyle(
-              color: isWhite ? Colors.white : const Color(0xFF64748B),
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
     );
-  }
-
-  Color _getRankColor(int rank) {
-    switch (rank) {
-      case 1:
-        return const Color(0xFFF59E0B); // Gold
-      case 2:
-        return const Color(0xFF94A3B8); // Silver
-      case 3:
-        return const Color(0xFFCD7F32); // Bronze
-      default:
-        return const Color(0xFF0EA5E9); // Default blue
-    }
   }
 }
