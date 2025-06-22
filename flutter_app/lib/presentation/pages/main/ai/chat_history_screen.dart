@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../data/models/chat_models.dart';
-import '../../../data/repositories/chat_repository.dart';
-import '../../../injection_container.dart' as di;
+import '../../../../core/constants/app_colors.dart';
+import '../../../../data/models/chat_models.dart';
+import '../../../../data/repositories/chat_repository.dart';
+import '../../../../injection_container.dart' as di;
 
 class ChatHistoryScreen extends StatefulWidget {
   const ChatHistoryScreen({super.key});

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../injection_container.dart' as di;
-import '../../bloc/chat/chat_bloc.dart';
-import '../../widgets/chat_message_widget.dart';
-import '../../widgets/chat_input_widget.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../injection_container.dart' as di;
+import '../../../bloc/chat/chat_bloc.dart';
+import '../../../widgets/chat_message_widget.dart';
+import '../../../widgets/chat_input_widget.dart';
 import 'chat_history_screen.dart';
 
 class AIAssistantScreen extends StatelessWidget {

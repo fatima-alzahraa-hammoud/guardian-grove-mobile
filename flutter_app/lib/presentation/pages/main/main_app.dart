@@ -7,9 +7,9 @@ import '../../bloc/auth/auth_event.dart';
 import '../../bloc/home/home_bloc.dart';
 import '../home/home_page.dart';
 import 'leaderboard_screen.dart';
-import 'ai_assistant_screen.dart';
+import 'ai/ai_assistant_screen.dart';
 import 'messaging_screen.dart';
-import 'profile_screen.dart';
+import 'profile/profile_screen.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../injection_container.dart' as di;
 
