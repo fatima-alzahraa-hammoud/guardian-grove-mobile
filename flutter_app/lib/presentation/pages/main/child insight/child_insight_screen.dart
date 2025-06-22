@@ -473,7 +473,7 @@ class ChildInsightScreen extends StatelessWidget {
                 ),
               ],
             ),
-          )).toList(),
+          )),
         ],
       ),
     );
@@ -565,7 +565,7 @@ class ChildInsightScreen extends StatelessWidget {
                 ),
               ],
             ),
-          )).toList(),
+          )),
         ],
       ),
     );
