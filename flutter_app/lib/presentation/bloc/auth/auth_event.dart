@@ -38,6 +38,24 @@ class ForgotPasswordEvent extends AuthEvent {
   List<Object> get props => [name, email];
 }
 
+class AddFamilyMemberEvent extends AuthEvent {
+  final Map<String, dynamic> memberData;
+
+  const AddFamilyMemberEvent(this.memberData);
+
+  @override
+  List<Object?> get props => [memberData];
+}
+
 class LogoutEvent extends AuthEvent {}
 
 class CompleteRegistrationFlowEvent extends AuthEvent {}
+
+class ChangePasswordEvent extends AuthEvent {
+  final ChangePasswordRequest changePasswordRequest;
+
+  const ChangePasswordEvent(this.changePasswordRequest);
+
+  @override
+  List<Object> get props => [changePasswordRequest];
+}

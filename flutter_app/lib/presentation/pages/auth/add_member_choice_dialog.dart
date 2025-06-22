@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/presentation/pages/main/main_app.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../bloc/auth/auth_bloc.dart';
-import '../../bloc/auth/auth_event.dart';
 import 'add_member_screen.dart';
 
 class AddMemberChoiceDialog extends StatelessWidget {
@@ -176,16 +173,16 @@ class AddMemberChoiceDialog extends StatelessWidget {
                       color: Colors.transparent,
                       child: InkWell(
                         borderRadius: BorderRadius.circular(26),
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        // Navigate directly to main app with navigation bar
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(
-                            builder: (context) => const MainApp(),
-                          ),
-                          (route) => false,
-                        );
-                      },
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          // Navigate directly to main app with navigation bar
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (context) => const MainApp(),
+                            ),
+                            (route) => false,
+                          );
+                        },
                         child: const Center(
                           child: Text(
                             'Later',

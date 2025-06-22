@@ -5,6 +5,7 @@ import '../../bloc/auth/auth_state.dart';
 import '../../bloc/home/home_bloc.dart';
 import '../../../injection_container.dart' as di;
 import '../auth/login_page.dart';
+import '../auth/add_member_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -362,7 +363,15 @@ class HomeView extends StatelessWidget {
             color: Colors.transparent,
             child: InkWell(
               borderRadius: BorderRadius.circular(12),
-              onTap: () => _showInviteMemberDialog(context),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) => const AddMemberScreen(fromProfile: false),
+                  ),
+                );
+              },
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -379,43 +388,6 @@ class HomeView extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  void _showInviteMemberDialog(BuildContext context) {
-    final emailController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Invite Family Member'),
-            content: TextField(
-              controller: emailController,
-              decoration: const InputDecoration(
-                labelText: 'Email Address',
-                hintText: 'Enter family member\'s email',
-              ),
-              keyboardType: TextInputType.emailAddress,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  if (emailController.text.isNotEmpty) {
-                    context.read<HomeBloc>().add(
-                      InviteFamilyMember(emailController.text),
-                    );
-                    Navigator.pop(context);
-                  }
-                },
-                child: const Text('Send Invitation'),
-              ),
-            ],
-          ),
     );
   }
 

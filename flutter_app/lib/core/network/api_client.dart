@@ -121,12 +121,55 @@ class ApiClient {
   // Health check method to test backend connectivity
   Future<bool> testConnection() async {
     try {
-      final response = await _dio.get('/health');
+      debugPrint('🔍 Testing backend connection to ${AppConstants.baseUrl}');
+      final response = await _dio.get(
+        '/health',
+        options: Options(
+          sendTimeout: const Duration(milliseconds: 5000),
+          receiveTimeout: const Duration(milliseconds: 5000),
+        ),
+      );
+      debugPrint('✅ Backend connection successful: ${response.statusCode}');
       return response.statusCode == 200;
     } catch (e) {
+      debugPrint('❌ Backend connection failed: $e');
       // Connection test failed silently
       return false;
     }
+  }
+
+  // Test alternative URLs for connection
+  Future<String?> findWorkingBaseUrl() async {
+    final testUrls = [
+      AppConstants.baseUrl,
+      AppConstants.fallbackBaseUrl,
+      AppConstants.localBaseUrl,
+    ];
+
+    for (final url in testUrls) {
+      try {
+        debugPrint('🔍 Testing connection to: $url');
+        final tempDio = Dio(
+          BaseOptions(
+            baseUrl: url,
+            connectTimeout: const Duration(milliseconds: 5000),
+            receiveTimeout: const Duration(milliseconds: 5000),
+          ),
+        );
+
+        final response = await tempDio.get('/health');
+        if (response.statusCode == 200) {
+          debugPrint('✅ Found working URL: $url');
+          return url;
+        }
+      } catch (e) {
+        debugPrint('❌ Failed to connect to: $url');
+        continue;
+      }
+    }
+
+    debugPrint('❌ No working backend URL found');
+    return null;
   }
 }
 

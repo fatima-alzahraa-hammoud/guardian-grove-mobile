@@ -4,6 +4,7 @@ import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
 import '../../../data/models/user_model.dart';
+import '../../widgets/password_change_dialog.dart';
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -58,52 +59,52 @@ class _LoginPageState extends State<LoginPage> {
   String _getLoginErrorMessage(String originalError) {
     // Convert backend error messages to user-friendly messages
     final lowerError = originalError.toLowerCase();
-    
-    if (lowerError.contains('user not found') || 
+
+    if (lowerError.contains('user not found') ||
         lowerError.contains('user does not exist') ||
         lowerError.contains('invalid email')) {
       return 'This email is not registered. Check your email or create a new account.';
     }
-    
-    if (lowerError.contains('wrong password') || 
+
+    if (lowerError.contains('wrong password') ||
         lowerError.contains('incorrect password') ||
         lowerError.contains('invalid password') ||
         lowerError.contains('password mismatch')) {
       return 'Wrong password. Try again or reset your password.';
     }
-    
+
     if (lowerError.contains('invalid credentials') ||
         lowerError.contains('authentication failed') ||
         lowerError.contains('login failed')) {
       return 'Email or password is wrong. Double-check and try again.';
     }
-    
+
     if (lowerError.contains('account disabled') ||
         lowerError.contains('account suspended')) {
       return 'Your account is disabled. Contact our support team for help.';
     }
-    
+
     if (lowerError.contains('network') ||
         lowerError.contains('connection') ||
         lowerError.contains('timeout')) {
       return 'Connection problem. Check your internet and try again.';
     }
-    
+
     if (lowerError.contains('server') ||
         lowerError.contains('internal error')) {
       return 'Something went wrong on our end. Try again in a moment.';
     }
-    
+
     if (lowerError.contains('email not verified') ||
         lowerError.contains('verify your email')) {
       return 'Check your email and verify your account first.';
     }
-    
+
     if (lowerError.contains('too many attempts') ||
         lowerError.contains('rate limit')) {
       return 'Too many tries. Wait a few minutes before trying again.';
     }
-    
+
     // Default user-friendly message for unknown errors
     return 'Something went wrong. Check your email and password, then try again.';
   }
@@ -118,10 +119,10 @@ class _LoginPageState extends State<LoginPage> {
             debugPrint('📱 Login page received state: ${state.runtimeType}');
             if (state is AuthError) {
               debugPrint('🔴 Showing error snackbar: ${state.message}');
-              
+
               // Clear any existing snackbars first
               ScaffoldMessenger.of(context).clearSnackBars();
-              
+
               // Show user-friendly error message
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -157,37 +158,49 @@ class _LoginPageState extends State<LoginPage> {
               );
             } else if (state is AuthAuthenticated) {
               debugPrint('✅ Login successful, navigating to main app');
-              
-              // Show success message
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Row(
-                    children: [
-                      Icon(
-                        Icons.check_circle_rounded,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                      SizedBox(width: 12),
-                      Text(
-                        'Welcome back! Login successful 🎉',
-                        style: TextStyle(
+
+              // Check if password change is required
+              if (state.requiresPasswordChange) {
+                debugPrint('🔑 Password change required, showing dialog');
+
+                // Show password change dialog
+                showDialog(
+                  context: context,
+                  barrierDismissible: false, // User must change password
+                  builder: (context) => PasswordChangeDialog(user: state.user),
+                );
+              } else {
+                // Show success message and navigate normally
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Row(
+                      children: [
+                        Icon(
+                          Icons.check_circle_rounded,
                           color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                          size: 20,
                         ),
-                      ),
-                    ],
+                        SizedBox(width: 12),
+                        Text(
+                          'Welcome back! Login successful 🎉',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    backgroundColor: const Color(0xFF10B981),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    duration: const Duration(seconds: 2),
+                    margin: const EdgeInsets.all(16),
                   ),
-                  backgroundColor: const Color(0xFF10B981),
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  duration: const Duration(seconds: 2),
-                  margin: const EdgeInsets.all(16),
-                ),
-              );
+                );
+              }
             } else if (state is AuthLoading) {
               debugPrint('⏳ Authentication in progress');
             }

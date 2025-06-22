@@ -38,19 +38,24 @@ class UserModel extends Equatable {
     this.familyId,
     this.isTempPassword = false,
   });
-
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['_id'] ?? '',
+      id: json['_id'] ?? json['id'] ?? '',
       name: json['name'] ?? '',
       email: json['email'] ?? '',
-      birthday: DateTime.parse(json['birthday']),
+      birthday:
+          json['birthday'] != null
+              ? DateTime.parse(json['birthday'])
+              : DateTime.now(),
       dailyMessage: json['dailyMessage'] ?? 'You are shining💫!',
       gender: json['gender'] ?? '',
       role: json['role'] ?? '',
       avatar: json['avatar'] ?? '',
       interests: List<String>.from(json['interests'] ?? []),
-      memberSince: DateTime.parse(json['memberSince']),
+      memberSince:
+          json['memberSince'] != null
+              ? DateTime.parse(json['memberSince'])
+              : DateTime.now(),
       currentLocation: json['currentLocation'] ?? 'not specified',
       stars: json['stars'] ?? 0,
       coins: json['coins'] ?? 0,
@@ -85,24 +90,24 @@ class UserModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        name,
-        email,
-        birthday,
-        dailyMessage,
-        gender,
-        role,
-        avatar,
-        interests,
-        memberSince,
-        currentLocation,
-        stars,
-        coins,
-        nbOfTasksCompleted,
-        rankInFamily,
-        familyId,
-        isTempPassword,
-      ];
+    id,
+    name,
+    email,
+    birthday,
+    dailyMessage,
+    gender,
+    role,
+    avatar,
+    interests,
+    memberSince,
+    currentLocation,
+    stars,
+    coins,
+    nbOfTasksCompleted,
+    rankInFamily,
+    familyId,
+    isTempPassword,
+  ];
 }
 
 // Request models for login and register
@@ -118,11 +123,7 @@ class LoginRequest extends Equatable {
   });
 
   Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'email': email,
-      'password': password,
-    };
+    return {'name': name, 'email': email, 'password': password};
   }
 
   @override
@@ -174,18 +175,18 @@ class RegisterRequest extends Equatable {
 
   @override
   List<Object> get props => [
-        name,
-        email,
-        password,
-        confirmPassword,
-        birthday,
-        gender,
-        role,
-        avatar,
-        interests,
-        familyName,
-        familyAvatar,
-      ];
+    name,
+    email,
+    password,
+    confirmPassword,
+    birthday,
+    gender,
+    role,
+    avatar,
+    interests,
+    familyName,
+    familyAvatar,
+  ];
 }
 
 // Response model for login/register
@@ -213,4 +214,72 @@ class AuthResponse extends Equatable {
 
   @override
   List<Object> get props => [user, token, requiresPasswordChange, message];
+}
+
+// Request model for adding family member
+class AddMemberRequest extends Equatable {
+  final String name;
+  final DateTime birthday;
+  final String gender;
+  final String role;
+  final String avatar;
+  final List<String> interests;
+
+  const AddMemberRequest({
+    required this.name,
+    required this.birthday,
+    required this.gender,
+    required this.role,
+    required this.avatar,
+    required this.interests,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'birthday': birthday.toIso8601String(),
+      'gender': gender,
+      'role': role,
+      'avatar': avatar,
+      'interests': interests,
+    };
+  }
+
+  @override
+  List<Object> get props => [name, birthday, gender, role, avatar, interests];
+}
+
+// Request model for changing password
+class ChangePasswordRequest extends Equatable {
+  final String? userId;
+  final String oldPassword;
+  final String newPassword;
+  final String confirmPassword;
+
+  const ChangePasswordRequest({
+    this.userId,
+    required this.oldPassword,
+    required this.newPassword,
+    required this.confirmPassword,
+  });
+
+  Map<String, dynamic> toJson() {
+    final data = {
+      'oldPassword': oldPassword,
+      'newPassword': newPassword,
+      'confirmPassword': confirmPassword,
+    };
+    if (userId != null) {
+      data['userId'] = userId!;
+    }
+    return data;
+  }
+
+  @override
+  List<Object?> get props => [
+    userId,
+    oldPassword,
+    newPassword,
+    confirmPassword,
+  ];
 }

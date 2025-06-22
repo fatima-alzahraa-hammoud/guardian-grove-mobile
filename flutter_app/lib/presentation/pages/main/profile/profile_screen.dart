@@ -8,7 +8,6 @@ import 'package:flutter_app/presentation/bloc/home/home_bloc.dart';
 import 'package:flutter_app/presentation/pages/auth/add_member_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -46,7 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int _calculateAge(DateTime birthday) {
     final today = DateTime.now();
     int age = today.year - birthday.year;
-    if (today.month < birthday.month || 
+    if (today.month < birthday.month ||
         (today.month == birthday.month && today.day < birthday.day)) {
       age--;
     }
@@ -73,7 +72,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 // Header with settings dropdown
                 _buildHeader(),
                 const SizedBox(height: 24),
-                
+
                 // Main profile content
                 Expanded(
                   child: SingleChildScrollView(
@@ -82,15 +81,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         // User Info Card
                         _buildUserInfoCard(),
                         const SizedBox(height: 16),
-                        
+
                         // Family Stats Card
                         _buildFamilyStatsCard(),
                         const SizedBox(height: 24),
-                        
+
                         // Family Members Section
                         _buildFamilyMembersSection(),
                         const SizedBox(height: 40),
-                        
+
                         // Logout Button
                         _buildLogoutButton(),
                       ],
@@ -136,9 +135,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
             child: Icon(
-              _isDropdownExpanded 
-                ? Icons.keyboard_arrow_up_rounded 
-                : Icons.keyboard_arrow_down_rounded,
+              _isDropdownExpanded
+                  ? Icons.keyboard_arrow_up_rounded
+                  : Icons.keyboard_arrow_down_rounded,
               color: const Color(0xFF64748B),
               size: 20,
             ),
@@ -191,35 +190,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ],
                 ),
                 child: Center(
-                  child: currentUser!.avatar.isNotEmpty
-                      ? ClipOval(
-                          child: Image.network(
-                            currentUser!.avatar,
-                            width: 60,
-                            height: 60,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => Text(
-                              currentUser!.name.isNotEmpty
-                                  ? currentUser!.name[0].toUpperCase()
-                                  : 'U',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.w700,
-                              ),
+                  child:
+                      currentUser!.avatar.isNotEmpty
+                          ? ClipOval(
+                            child: Image.network(
+                              currentUser!.avatar,
+                              width: 60,
+                              height: 60,
+                              fit: BoxFit.cover,
+                              errorBuilder:
+                                  (context, error, stackTrace) => Text(
+                                    currentUser!.name.isNotEmpty
+                                        ? currentUser!.name[0].toUpperCase()
+                                        : 'U',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                            ),
+                          )
+                          : Text(
+                            currentUser!.name.isNotEmpty
+                                ? currentUser!.name[0].toUpperCase()
+                                : 'U',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
-                        )
-                      : Text(
-                          currentUser!.name.isNotEmpty
-                              ? currentUser!.name[0].toUpperCase()
-                              : 'U',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -249,7 +250,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          
+
           // Additional info
           _buildInfoRow('Family email', currentUser!.email),
           const SizedBox(height: 8),
@@ -264,11 +265,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context, state) {
         FamilyStats? familyStats;
         String familyName = 'Your Family';
-        
+
         if (state is HomeLoaded) {
           familyStats = state.homeData.familyStats;
           // Try to get family name from home data or use a default
-          familyName = 'Your Family'; // You might want to add family name to your models
+          familyName =
+              'Your Family'; // You might want to add family name to your models
         } else if (currentUser != null) {
           // Fallback to current user data
           familyStats = FamilyStats(
@@ -356,7 +358,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
               const SizedBox(height: 20),
-              
+
               // Coins and Rank Row
               Row(
                 children: [
@@ -375,7 +377,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF59E0B).withValues(alpha: 0.1),
+                              color: const Color(
+                                0xFFF59E0B,
+                              ).withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(
@@ -426,7 +430,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF8B5CF6).withValues(alpha: 0.1),
+                              color: const Color(
+                                0xFF8B5CF6,
+                              ).withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(
@@ -474,7 +480,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
         List<FamilyMember> familyMembers = [];
-        
+
         if (state is HomeLoaded) {
           familyMembers = state.homeData.familyMembers;
         } else if (currentUser != null) {
@@ -522,16 +528,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   // Add Members button
                   GestureDetector(
-                   onTap: () {
+                    onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const AddMemberScreen(),
+                          builder:
+                              (context) =>
+                                  const AddMemberScreen(fromProfile: true),
                         ),
                       );
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFF0EA5E9),
                         borderRadius: BorderRadius.circular(16),
@@ -556,16 +567,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              
+
               // Family members list
               if (familyMembers.isEmpty)
                 const Center(
                   child: Text(
                     'No family members found',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF64748B),
-                    ),
+                    style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
                   ),
                 )
               else
@@ -593,7 +601,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         );
                       }
-                      
+
                       final member = familyMembers[index];
                       return GestureDetector(
                         onTap: () => _showMemberDialog(member),
@@ -605,40 +613,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             gradient: _getMemberGradient(member.role),
                             borderRadius: BorderRadius.circular(30),
                             border: Border.all(
-                              color: member.isOnline 
-                                ? const Color(0xFF10B981) 
-                                : const Color(0xFFE2E8F0),
+                              color:
+                                  member.isOnline
+                                      ? const Color(0xFF10B981)
+                                      : const Color(0xFFE2E8F0),
                               width: 2,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: _getMemberGradient(member.role).colors.first.withValues(alpha: 0.3),
+                                color: _getMemberGradient(
+                                  member.role,
+                                ).colors.first.withValues(alpha: 0.3),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),
                             ],
                           ),
-                          child: member.avatar.isNotEmpty
-                            ? ClipOval(
-                                child: Image.network(
-                                  member.avatar,
-                                  width: 60,
-                                  height: 60,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) => Center(
-                                    child: Icon(
-                                      _getMemberIcon(member.role),
-                                      color: Colors.white,
-                                      size: 24,
+                          child:
+                              member.avatar.isNotEmpty
+                                  ? ClipOval(
+                                    child: Image.network(
+                                      member.avatar,
+                                      width: 60,
+                                      height: 60,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              Center(
+                                                child: Icon(
+                                                  _getMemberIcon(member.role),
+                                                  color: Colors.white,
+                                                  size: 24,
+                                                ),
+                                              ),
                                     ),
+                                  )
+                                  : Icon(
+                                    _getMemberIcon(member.role),
+                                    color: Colors.white,
+                                    size: 24,
                                   ),
-                                ),
-                              )
-                            : Icon(
-                                _getMemberIcon(member.role),
-                                color: Colors.white,
-                                size: 24,
-                              ),
                         ),
                       );
                     },
@@ -694,156 +708,169 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showMemberDialog(FamilyMember member) {
-    final isChild = member.role.toLowerCase().contains('child') ||
-                   member.role.toLowerCase().contains('son') ||
-                   member.role.toLowerCase().contains('daughter');
-    
-    final currentUserIsParent = currentUser?.role.toLowerCase().contains('father') == true ||
-                               currentUser?.role.toLowerCase().contains('mother') == true ||
-                               currentUser?.role.toLowerCase().contains('dad') == true ||
-                               currentUser?.role.toLowerCase().contains('mom') == true;
-    
+    final isChild =
+        member.role.toLowerCase().contains('child') ||
+        member.role.toLowerCase().contains('son') ||
+        member.role.toLowerCase().contains('daughter');
+
+    final currentUserIsParent =
+        currentUser?.role.toLowerCase().contains('father') == true ||
+        currentUser?.role.toLowerCase().contains('mother') == true ||
+        currentUser?.role.toLowerCase().contains('dad') == true ||
+        currentUser?.role.toLowerCase().contains('mom') == true;
 
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
+      builder:
+          (context) => Dialog(
+            backgroundColor: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Member Avatar
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  gradient: _getMemberGradient(member.role),
-                  borderRadius: BorderRadius.circular(40),
-                  boxShadow: [
-                    BoxShadow(
-                      color: _getMemberGradient(member.role).colors.first.withValues(alpha: 0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: member.avatar.isNotEmpty
-                  ? ClipOval(
-                      child: Image.network(
-                        member.avatar,
-                        width: 80,
-                        height: 80,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Icon(
-                          _getMemberIcon(member.role),
-                          color: Colors.white,
-                          size: 32,
-                        ),
-                      ),
-                    )
-                  : Icon(
-                      _getMemberIcon(member.role),
-                      color: Colors.white,
-                      size: 32,
-                    ),
-              ),
-              const SizedBox(height: 16),
-              
-              // Member Info
-              Text(
-                member.name,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1A202C),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                member.role.toLowerCase().contains('child') ? 'Child' : member.role,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF64748B),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 20),
-              
-              // Basic info for all members
-              _buildDialogInfoRow('Email', member.email),
-              const SizedBox(height: 12),
-              _buildDialogInfoRow('Role', member.role),
-              const SizedBox(height: 12),
-              _buildDialogInfoRow('Status', member.isOnline ? 'Online' : 'Offline'),
-              
-              const SizedBox(height: 24),
-              
-              // Action buttons
-              Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text(
-                        'Close',
-                        style: TextStyle(
-                          color: Color(0xFF64748B),
-                          fontWeight: FontWeight.w600,
+                  // Member Avatar
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      gradient: _getMemberGradient(member.role),
+                      borderRadius: BorderRadius.circular(40),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _getMemberGradient(
+                            member.role,
+                          ).colors.first.withValues(alpha: 0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
                         ),
-                      ),
+                      ],
+                    ),
+                    child:
+                        member.avatar.isNotEmpty
+                            ? ClipOval(
+                              child: Image.network(
+                                member.avatar,
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.cover,
+                                errorBuilder:
+                                    (context, error, stackTrace) => Icon(
+                                      _getMemberIcon(member.role),
+                                      color: Colors.white,
+                                      size: 32,
+                                    ),
+                              ),
+                            )
+                            : Icon(
+                              _getMemberIcon(member.role),
+                              color: Colors.white,
+                              size: 32,
+                            ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Member Info
+                  Text(
+                    member.name,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1A202C),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    member.role.toLowerCase().contains('child')
+                        ? 'Child'
+                        : member.role,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF64748B),
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  if (isChild && currentUserIsParent) ...[
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF0EA5E9), Color(0xFF0284C7)],
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                  const SizedBox(height: 20),
+
+                  // Basic info for all members
+                  _buildDialogInfoRow('Email', member.email),
+                  const SizedBox(height: 12),
+                  _buildDialogInfoRow('Role', member.role),
+                  const SizedBox(height: 12),
+                  _buildDialogInfoRow(
+                    'Status',
+                    member.isOnline ? 'Online' : 'Offline',
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Action buttons
+                  Row(
+                    children: [
+                      Expanded(
                         child: TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            // Navigate to child insight screen
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Opening ${member.name}\'s insights...'),
-                                backgroundColor: const Color(0xFF0EA5E9),
-                              ),
-                            );
-                          },
+                          onPressed: () => Navigator.pop(context),
                           child: const Text(
-                            'View Insights',
+                            'Close',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: Color(0xFF64748B),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                      if (isChild && currentUserIsParent) ...[
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF0EA5E9), Color(0xFF0284C7)],
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                // Navigate to child insight screen
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Opening ${member.name}\'s insights...',
+                                    ),
+                                    backgroundColor: const Color(0xFF0EA5E9),
+                                  ),
+                                );
+                              },
+                              child: const Text(
+                                'View Insights',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
     );
   }
 
@@ -923,9 +950,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
       child: const Center(
-        child: CircularProgressIndicator(
-          color: Color(0xFF0EA5E9),
-        ),
+        child: CircularProgressIndicator(color: Color(0xFF0EA5E9)),
       ),
     );
   }
@@ -954,26 +979,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // Show logout confirmation dialog
             showDialog(
               context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Logout'),
-                content: const Text('Are you sure you want to logout?'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel'),
+              builder:
+                  (context) => AlertDialog(
+                    title: const Text('Logout'),
+                    content: const Text('Are you sure you want to logout?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          context.read<AuthBloc>().add(LogoutEvent());
+                        },
+                        child: const Text(
+                          'Logout',
+                          style: TextStyle(color: Color(0xFFEF4444)),
+                        ),
+                      ),
+                    ],
                   ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      context.read<AuthBloc>().add(LogoutEvent());
-                    },
-                    child: const Text(
-                      'Logout',
-                      style: TextStyle(color: Color(0xFFEF4444)),
-                    ),
-                  ),
-                ],
-              ),
             );
           },
           child: const Center(

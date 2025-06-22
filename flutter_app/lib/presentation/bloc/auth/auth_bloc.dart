@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../../../core/errors/exceptions.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../data/datasources/remote/auth_remote_datasource.dart';
+import '../../../data/models/user_model.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -15,6 +16,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<ForgotPasswordEvent>(_onForgotPassword);
     on<LogoutEvent>(_onLogout);
     on<CompleteRegistrationFlowEvent>(_onCompleteRegistrationFlow);
+    on<AddFamilyMemberEvent>(_onAddFamilyMember);
+    on<ChangePasswordEvent>(_onChangePassword);
   }
   Future<void> _onCheckAuthStatus(
     CheckAuthStatusEvent event,
@@ -183,6 +186,78 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
     } catch (e) {
       emit(AuthError('Failed to complete registration flow: ${e.toString()}'));
+    }
+  }
+
+  // Handler function for AddFamilyMemberEvent
+  Future<void> _onAddFamilyMember(
+    AddFamilyMemberEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    try {
+      emit(AuthLoading());
+
+      // Convert Map to AddMemberRequest
+      final addMemberRequest = AddMemberRequest(
+        name: event.memberData['name'],
+        birthday: DateTime.parse(event.memberData['birthday']),
+        gender: event.memberData['gender'],
+        role: event.memberData['role'],
+        avatar: event.memberData['avatar'],
+        interests: List<String>.from(event.memberData['interests']),
+      );
+
+      // Call the API service to add family member
+      final response = await _authRemoteDataSource.addFamilyMember(
+        addMemberRequest,
+      );
+
+      debugPrint('✅ Family member added successfully: ${response.message}');
+
+      // Optionally refresh user data to include new family member
+      final updatedUser = await _authRemoteDataSource.getCurrentUser();
+
+      emit(AuthAuthenticated(user: updatedUser));
+    } on NetworkException catch (e) {
+      emit(AuthError(e.message));
+    } on ServerException catch (e) {
+      emit(AuthError(e.message));
+    } catch (e) {
+      emit(AuthError('Failed to add family member: ${e.toString()}'));
+    }
+  }
+
+  Future<void> _onChangePassword(
+    ChangePasswordEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    try {
+      emit(AuthLoading());
+
+      debugPrint('🔑 Starting password change process...');
+
+      await _authRemoteDataSource.changePassword(event.changePasswordRequest);
+
+      debugPrint('✅ Password changed successfully');
+
+      // Get updated user data
+      final updatedUser = await _authRemoteDataSource.getCurrentUser();
+
+      emit(
+        AuthAuthenticated(
+          user: updatedUser,
+          requiresPasswordChange: false, // Password was just changed
+        ),
+      );
+    } on NetworkException catch (e) {
+      debugPrint('🌐 Network error during password change: ${e.message}');
+      emit(AuthError(e.message));
+    } on ServerException catch (e) {
+      debugPrint('🔥 Server error during password change: ${e.message}');
+      emit(AuthError(e.message));
+    } catch (e) {
+      debugPrint('❌ Unexpected error during password change: ${e.toString()}');
+      emit(AuthError('Failed to change password: ${e.toString()}'));
     }
   }
 }
