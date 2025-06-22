@@ -38,56 +38,103 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final TextEditingController _familyNameController = TextEditingController();
 
   // Avatar options
-  final List<Map<String, dynamic>> _avatars = [
-    {
-      'id': 'happy_child',
-      'icon': Icons.child_care,
-      'color': Color(0xFFFF6B9D),
-      'label': 'Happy Kid',
-    },
-    {
-      'id': 'smart_child',
-      'icon': Icons.school,
-      'color': Color(0xFF0EA5E9),
-      'label': 'Smart Kid',
-    },
-    {
-      'id': 'sporty_child',
-      'icon': Icons.sports_soccer,
-      'color': Color(0xFF10B981),
-      'label': 'Sporty Kid',
-    },
-    {
-      'id': 'creative_child',
-      'icon': Icons.palette,
-      'color': Color(0xFF8B5CF6),
-      'label': 'Creative Kid',
-    },
-    {
-      'id': 'music_child',
-      'icon': Icons.music_note,
-      'color': Color(0xFFF59E0B),
-      'label': 'Musical Kid',
-    },
-    {
-      'id': 'tech_child',
-      'icon': Icons.computer,
-      'color': Color(0xFF06B6D4),
-      'label': 'Tech Kid',
-    },
-    {
-      'id': 'mom',
-      'icon': Icons.woman,
-      'color': Color(0xFFFF6B9D),
-      'label': 'Mom',
-    },
-    {
-      'id': 'dad',
-      'icon': Icons.man,
-      'color': Color(0xFF0EA5E9),
-      'label': 'Dad',
-    },
-  ];
+  // Personal Avatar options (Parent/Child)
+final List<Map<String, dynamic>> _personalAvatars = [
+  {
+    'id': 'assets/images/avatars/parent/avatar1.png',
+    'path': 'assets/images/avatars/parent/avatar1.png',
+    'label': 'Parent Avatar 1',
+  },
+  {
+    'id': 'assets/images/avatars/parent/avatar2.png',
+    'path': 'assets/images/avatars/parent/avatar2.png',
+    'label': 'Parent Avatar 2',
+  },
+  {
+    'id': 'assets/images/avatars/parent/avatar3.png',
+    'path': 'assets/images/avatars/parent/avatar3.png',
+    'label': 'Parent Avatar 3',
+  },
+  {
+    'id': 'assets/images/avatars/parent/avatar4.png',
+    'path': 'assets/images/avatars/parent/avatar4.png',
+    'label': 'Parent Avatar 4',
+  },
+  {
+    'id': 'assets/images/avatars/parent/avatar5.png',
+    'path': 'assets/images/avatars/parent/avatar5.png',
+    'label': 'Parent Avatar 5',
+  },
+  {
+    'id': 'assets/images/avatars/parent/avatar6.png',
+    'path': 'assets/images/avatars/parent/avatar6.png',
+    'label': 'Parent Avatar 6',
+  },
+  {
+    'id': 'assets/images/avatars/child/avatar1.png',
+    'path': 'assets/images/avatars/child/avatar1.png',
+    'label': 'Child Avatar 1',
+  },
+  {
+    'id': 'assets/images/avatars/child/avatar2.png',
+    'path': 'assets/images/avatars/child/avatar2.png',
+    'label': 'Child Avatar 2',
+  },
+  {
+    'id': 'assets/images/avatars/child/avatar3.png',
+    'path': 'assets/images/avatars/child/avatar3.png',
+    'label': 'Child Avatar 3',
+  },
+  {
+    'id': 'assets/images/avatars/child/avatar4.png',
+    'path': 'assets/images/avatars/child/avatar4.png',
+    'label': 'Child Avatar 4',
+  },
+];
+
+// Family Avatar options
+final List<Map<String, dynamic>> _familyAvatars = [
+  {
+    'id': 'assets/images/avatars/family/avatar1.png',
+    'path': 'assets/images/avatars/family/avatar1.png',
+    'label': 'Family Avatar 1',
+  },
+  {
+    'id': 'assets/images/avatars/family/avatar2.png',
+    'path': 'assets/images/avatars/family/avatar2.png',
+    'label': 'Family Avatar 2',
+  },
+  {
+    'id': 'assets/images/avatars/family/avatar3.png',
+    'path': 'assets/images/avatars/family/avatar3.png',
+    'label': 'Family Avatar 3',
+  },
+  {
+    'id': 'assets/images/avatars/family/avatar4.png',
+    'path': 'assets/images/avatars/family/avatar4.png',
+    'label': 'Family Avatar 4',
+  },
+  {
+    'id': 'assets/images/avatars/family/avatar5.png',
+    'path': 'assets/images/avatars/family/avatar5.png',
+    'label': 'Family Avatar 5',
+  },
+  {
+    'id': 'assets/images/avatars/family/avatar6.png',
+    'path': 'assets/images/avatars/family/avatar6.png',
+    'label': 'Family Avatar 6',
+  },
+  {
+    'id': 'assets/images/avatars/family/avatar7.png',
+    'path': 'assets/images/avatars/family/avatar7.png',
+    'label': 'Family Avatar 7',
+  },
+  {
+    'id': 'assets/images/avatars/family/avatar8.png',
+    'path': 'assets/images/avatars/family/avatar8.png',
+    'label': 'Family Avatar 8',
+  },
+];
 
   // Interest options
   final List<String> _interestOptions = [
@@ -704,102 +751,113 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             ),
             const SizedBox(height: 40),
 
-            // Personal Avatar
-            _buildSectionCard(
-              title: 'Your Avatar',
-              child: SizedBox(
-                height: 160,
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 1,
-                  ),
-                  itemCount: _avatars.length,
-                  itemBuilder: (context, index) {
-                    final avatar = _avatars[index];
-                    final isSelected = _selectedAvatar == avatar['id'];
-                    return GestureDetector(
-                      onTap:
-                          () => setState(() => _selectedAvatar = avatar['id']),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color:
-                              isSelected
-                                  ? avatar['color']
-                                  : const Color(0xFFF8F9FE),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color:
-                                isSelected
-                                    ? avatar['color']
-                                    : const Color(0xFFE2E8F0),
-                            width: 2,
-                          ),
-                        ),
-                        child: Icon(
-                          avatar['icon'],
-                          size: 28,
-                          color: isSelected ? Colors.white : avatar['color'],
+          // Personal Avatar
+          _buildSectionCard(
+            title: 'Your Avatar',
+            child: SizedBox(
+              height: 200,
+              child: GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 1,
+                ),
+                itemCount: _personalAvatars.length,
+                itemBuilder: (context, index) {
+                  final avatar = _personalAvatars[index];
+                  final isSelected = _selectedAvatar == avatar['id'];
+                  return GestureDetector(
+                    onTap: () => setState(() => _selectedAvatar = avatar['id']),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8F9FE),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isSelected 
+                              ? const Color(0xFF4F46E5) 
+                              : const Color(0xFFE2E8F0),
+                          width: isSelected ? 3 : 2,
                         ),
                       ),
-                    );
-                  },
-                ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.asset(
+                          avatar['path'],
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: Colors.grey[300],
+                              child: const Icon(
+                                Icons.person,
+                                color: Colors.grey,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
+          ),
             const SizedBox(height: 20),
-
             // Family Avatar
-            _buildSectionCard(
-              title: 'Family Avatar',
-              child: SizedBox(
-                height: 160,
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 1,
-                  ),
-                  itemCount: _avatars.length,
-                  itemBuilder: (context, index) {
-                    final avatar = _avatars[index];
-                    final isSelected = _familyAvatar == avatar['id'];
-                    return GestureDetector(
-                      onTap: () => setState(() => _familyAvatar = avatar['id']),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color:
-                              isSelected
-                                  ? avatar['color']
-                                  : const Color(0xFFF8F9FE),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color:
-                                isSelected
-                                    ? avatar['color']
-                                    : const Color(0xFFE2E8F0),
-                            width: 2,
-                          ),
-                        ),
-                        child: Icon(
-                          avatar['icon'],
-                          size: 28,
-                          color: isSelected ? Colors.white : avatar['color'],
+          _buildSectionCard(
+            title: 'Family Avatar',
+            child: SizedBox(
+              height: 200,
+              child: GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 1,
+                ),
+                itemCount: _familyAvatars.length,
+                itemBuilder: (context, index) {
+                  final avatar = _familyAvatars[index];
+                  final isSelected = _familyAvatar == avatar['id'];
+                  return GestureDetector(
+                    onTap: () => setState(() => _familyAvatar = avatar['id']),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8F9FE),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isSelected 
+                              ? const Color(0xFF4F46E5) 
+                              : const Color(0xFFE2E8F0),
+                          width: isSelected ? 3 : 2,
                         ),
                       ),
-                    );
-                  },
-                ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.asset(
+                          avatar['path'],
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: Colors.grey[300],
+                              child: const Icon(
+                                Icons.family_restroom,
+                                color: Colors.grey,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
-
+          ),
             const SizedBox(height: 40),
 
             _buildNavigationButtons(

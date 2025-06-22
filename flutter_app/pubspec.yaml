@@ -26,3 +26,8 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/images/logo.png
+    - assets/images/avatars/
+    - assets/images/avatars/parent/
+    - assets/images/avatars/child/
+    - assets/images/avatars/family/

@@ -21,19 +21,104 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
 
   // Avatar options
   final List<Map<String, dynamic>> _childAvatars = [
-    {'id': 'child1', 'icon': Icons.child_care, 'color': Color(0xFFFF6B9D)},
-    {'id': 'child2', 'icon': Icons.school, 'color': Color(0xFF0EA5E9)},
-    {'id': 'child3', 'icon': Icons.sports_soccer, 'color': Color(0xFF10B981)},
-    {'id': 'child4', 'icon': Icons.palette, 'color': Color(0xFF8B5CF6)},
-    {'id': 'child5', 'icon': Icons.music_note, 'color': Color(0xFFF59E0B)},
-    {'id': 'child6', 'icon': Icons.computer, 'color': Color(0xFF06B6D4)},
+    {
+      'id': 'assets/images/avatars/child/avatar1.png',
+      'path': 'assets/images/avatars/child/avatar1.png',
+      'label': 'Child Avatar 1',
+    },
+    {
+      'id': 'assets/images/avatars/child/avatar2.png',
+      'path': 'assets/images/avatars/child/avatar2.png',
+      'label': 'Child Avatar 2',
+    },
+    {
+      'id': 'assets/images/avatars/child/avatar3.png',
+      'path': 'assets/images/avatars/child/avatar3.png',
+      'label': 'Child Avatar 3',
+    },
+    {
+      'id': 'assets/images/avatars/child/avatar4.png',
+      'path': 'assets/images/avatars/child/avatar4.png',
+      'label': 'Child Avatar 4',
+    },
+    {
+      'id': 'assets/images/avatars/child/avatar5.png',
+      'path': 'assets/images/avatars/child/avatar5.png',
+      'label': 'Child Avatar 5',
+    },
+    {
+      'id': 'assets/images/avatars/child/avatar6.png',
+      'path': 'assets/images/avatars/child/avatar6.png',
+      'label': 'Child Avatar 6',
+    },
+        {
+      'id': 'assets/images/avatars/child/avatar7.png',
+      'path': 'assets/images/avatars/child/avatar7.png',
+      'label': 'Child Avatar 7',
+    },
+        {
+      'id': 'assets/images/avatars/child/avatar8.png',
+      'path': 'assets/images/avatars/child/avatar8.png',
+      'label': 'Child Avatar 8',
+    },
+        {
+      'id': 'assets/images/avatars/child/avatar9.png',
+      'path': 'assets/images/avatars/child/avatar9.png',
+      'label': 'Child Avatar 9',
+    },
+        {
+      'id': 'assets/images/avatars/child/avatar10.png',
+      'path': 'assets/images/avatars/child/avatar10.png',
+      'label': 'Child Avatar 10',
+    },
   ];
 
   final List<Map<String, dynamic>> _parentAvatars = [
-    {'id': 'parent1', 'icon': Icons.woman, 'color': Color(0xFFFF6B9D)},
-    {'id': 'parent2', 'icon': Icons.man, 'color': Color(0xFF0EA5E9)},
-    {'id': 'parent3', 'icon': Icons.person, 'color': Color(0xFF8B5CF6)},
-    {'id': 'parent4', 'icon': Icons.person_2, 'color': Color(0xFF10B981)},
+    {
+      'id': 'assets/images/avatars/parent/avatar1.png',
+      'path': 'assets/images/avatars/parent/avatar1.png',
+      'label': 'Parent Avatar 1',
+    },
+    {
+      'id': 'assets/images/avatars/parent/avatar2.png',
+      'path': 'assets/images/avatars/parent/avatar2.png',
+      'label': 'Parent Avatar 2',
+    },
+    {
+      'id': 'assets/images/avatars/parent/avatar3.png',
+      'path': 'assets/images/avatars/parent/avatar3.png',
+      'label': 'Parent Avatar 3',
+    },
+    {
+      'id': 'assets/images/avatars/parent/avatar4.png',
+      'path': 'assets/images/avatars/parent/avatar4.png',
+      'label': 'Parent Avatar 4',
+    },
+    {
+      'id': 'assets/images/avatars/parent/avatar5.png',
+      'path': 'assets/images/avatars/parent/avatar5.png',
+      'label': 'Parent Avatar 5',
+    },
+    {
+      'id': 'assets/images/avatars/parent/avatar6.png',
+      'path': 'assets/images/avatars/parent/avatar6.png',
+      'label': 'Parent Avatar 6',
+    },
+        {
+      'id': 'assets/images/avatars/parent/avatar7.png',
+      'path': 'assets/images/avatars/parent/avatar7.png',
+      'label': 'Parent Avatar 7',
+    },
+        {
+      'id': 'assets/images/avatars/parent/avatar8.png',
+      'path': 'assets/images/avatars/parent/avatar8.png',
+      'label': 'Parent Avatar 8',
+    },
+        {
+      'id': 'assets/images/avatars/parent/avatar9.png',
+      'path': 'assets/images/avatars/parent/avatar9.png',
+      'label': 'Parent Avatar 9',
+    },
   ];
 
   // Interest options for children
@@ -363,64 +448,127 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
 
                     if (_memberType.isNotEmpty) ...[
                       const SizedBox(height: 24),
-
-                      // Avatar Selection
-                      _buildSectionCard(
-                        title: 'Choose Avatar',
-                        child: SizedBox(
-                          height: 80,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount:
-                                _memberType == 'Child'
-                                    ? _childAvatars.length
-                                    : _parentAvatars.length,
-                            itemBuilder: (context, index) {
-                              final avatars =
-                                  _memberType == 'Child'
-                                      ? _childAvatars
-                                      : _parentAvatars;
-                              final avatar = avatars[index];
-                              final isSelected =
-                                  _selectedAvatar == avatar['id'];
-
-                              return GestureDetector(
-                                onTap:
-                                    () => setState(
-                                      () => _selectedAvatar = avatar['id'],
-                                    ),
-                                child: Container(
-                                  width: 70,
-                                  height: 70,
-                                  margin: const EdgeInsets.only(right: 12),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        isSelected
-                                            ? avatar['color']
-                                            : const Color(0xFFF8F9FE),
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(
-                                      color:
-                                          isSelected
-                                              ? avatar['color']
-                                              : const Color(0xFFE2E8F0),
-                                      width: 2,
-                                    ),
-                                  ),
-                                  child: Icon(
-                                    avatar['icon'],
-                                    size: 32,
-                                    color:
-                                        isSelected
-                                            ? Colors.white
-                                            : avatar['color'],
-                                  ),
-                                ),
-                              );
-                            },
+                     // Avatar Selection
+                    _buildSectionCard(
+                      title: 'Choose Avatar',
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Hint text
+                        Text(
+                          'Swipe to see more options',
+                          style: TextStyle(
+                            color: Color(0xFF64748B),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
+                          SizedBox(height: 12),
+                          // Avatar selection with fade indicator
+                          Stack(
+                            children: [
+                              Scrollbar(
+                                thumbVisibility: true,
+                                child: SizedBox(
+                                  height: 80,
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    physics: const BouncingScrollPhysics(),
+                                    padding: const EdgeInsets.symmetric(horizontal: 4), 
+                                    itemCount:
+                                        _memberType == 'Child'
+                                            ? _childAvatars.length
+                                            : _parentAvatars.length,
+                                    itemBuilder: (context, index) {
+                                      final avatars =
+                                          _memberType == 'Child'
+                                              ? _childAvatars
+                                              : _parentAvatars;
+                                      final avatar = avatars[index];
+                                      final isSelected =
+                                          _selectedAvatar == avatar['id'];
+                                
+                                      return GestureDetector(
+                                        onTap:
+                                            () => setState(
+                                              () => _selectedAvatar = avatar['id'],
+                                            ),
+                                        child: Container(
+                                          width: 70,
+                                          height: 70,
+                                          margin: const EdgeInsets.only(right: 12),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF8F9FE),
+                                          borderRadius: BorderRadius.circular(16),
+                                          border: Border.all(
+                                            color: isSelected 
+                                                ? const Color(0xFF4F46E5) 
+                                                : const Color(0xFFE2E8F0),
+                                            width: isSelected ? 3 : 2,
+                                          ),
+                                        ),
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(14),
+                                            child: Image.asset(
+                                              avatar['path'],
+                                              width: 66,
+                                              height: 66,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (
+                                                context,
+                                                error,
+                                                stackTrace,
+                                              ) {
+                                                return Container(
+                                                  color: Colors.grey[300],
+                                                  child: Icon(
+                                                    _memberType == 'Child'
+                                                        ? Icons.child_care
+                                                        : Icons.person,
+                                                    size: 32,
+                                                    color: Colors.grey,
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                              // Right fade indicator with arrow
+                              Positioned(
+                                right: 0,
+                                top: 0,
+                                bottom: 0,
+                                child: Container(
+                                  width: 30,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.centerLeft,
+                                      end: Alignment.centerRight,
+                                      colors: [
+                                        Colors.transparent,
+                                        Colors.white.withOpacity(0.8),
+                                      ],
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Icon(
+                                      Icons.arrow_forward_ios_rounded,
+                                      size: 16,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
+                    ),
 
                       const SizedBox(height: 24),
 
