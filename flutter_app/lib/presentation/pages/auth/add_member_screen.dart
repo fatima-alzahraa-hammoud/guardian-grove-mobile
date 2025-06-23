@@ -423,9 +423,7 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
             Navigator.of(context).pop();
           } else {
             debugPrint('🏠 Returning to home (popUntil first route)');
-            Future.delayed(const Duration(milliseconds: 300), () {
-              Navigator.of(context).popUntil((route) => route.isFirst);
-            });
+            Navigator.of(context).popUntil((route) => route.isFirst);
           }
         } else if (state is AuthError) {
           debugPrint('❌ Failed to add family member: \\${state.message}');
