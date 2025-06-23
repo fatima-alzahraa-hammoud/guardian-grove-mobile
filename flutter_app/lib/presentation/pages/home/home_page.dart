@@ -8,6 +8,7 @@ import '../auth/login_page.dart';
 import '../auth/add_member_screen.dart';
 import '../../../core/services/storage_service.dart';
 import 'home_subScreens/family_tree_screen.dart';
+import 'home_subScreens/family_journal.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -657,8 +658,13 @@ class HomeView extends StatelessWidget {
             title: 'Family Journal',
             subtitle: 'Share memories',
             color: const Color(0xFF8B5CF6),
-            onTap:
-                () => context.read<HomeBloc>().add(NavigateToFamilyJournal()),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const FamilyJournalScreen(),
+                ),
+              );
+            },
           ),
         ),
       ],
