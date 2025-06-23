@@ -6,6 +6,7 @@ import '../../bloc/home/home_bloc.dart';
 import '../../../injection_container.dart' as di;
 import '../auth/login_page.dart';
 import '../auth/add_member_screen.dart';
+import '../../../core/services/storage_service.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -134,8 +135,21 @@ class HomeView extends StatelessWidget {
   }
 
   Widget _buildHeaderSection(HomeLoaded state) {
+    // Use StorageService to get the most up-to-date user info (as in Profile)
+    final currentUser = StorageService.getUser();
     final user = state.homeData.user;
     final stats = state.homeData.familyStats;
+
+    String avatarPath = '';
+    if (currentUser != null && currentUser.avatar.isNotEmpty) {
+      avatarPath = currentUser.avatar;
+    } else if (user.avatar.isNotEmpty) {
+      avatarPath = user.avatar;
+    }
+    final displayName =
+        (currentUser != null && currentUser.name.isNotEmpty)
+            ? currentUser.name
+            : user.name;
 
     return Container(
       width: double.infinity,
@@ -176,29 +190,49 @@ class HomeView extends StatelessWidget {
                 ),
                 child: Center(
                   child:
-                      user.avatar.isNotEmpty
-                          ? ClipOval(
-                            child: Image.network(
-                              user.avatar,
-                              width: 60,
-                              height: 60,
-                              fit: BoxFit.cover,
-                              errorBuilder:
-                                  (context, error, stackTrace) => Text(
-                                    user.name.isNotEmpty
-                                        ? user.name[0].toUpperCase()
-                                        : 'U',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                            ),
-                          )
+                      avatarPath.isNotEmpty
+                          ? (avatarPath.startsWith('assets/')
+                              ? ClipOval(
+                                child: Image.asset(
+                                  avatarPath,
+                                  width: 60,
+                                  height: 60,
+                                  fit: BoxFit.cover,
+                                  errorBuilder:
+                                      (context, error, stackTrace) => Text(
+                                        displayName.isNotEmpty
+                                            ? displayName[0].toUpperCase()
+                                            : 'U',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                ),
+                              )
+                              : ClipOval(
+                                child: Image.network(
+                                  avatarPath,
+                                  width: 60,
+                                  height: 60,
+                                  fit: BoxFit.cover,
+                                  errorBuilder:
+                                      (context, error, stackTrace) => Text(
+                                        displayName.isNotEmpty
+                                            ? displayName[0].toUpperCase()
+                                            : 'U',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                ),
+                              ))
                           : Text(
-                            user.name.isNotEmpty
-                                ? user.name[0].toUpperCase()
+                            displayName.isNotEmpty
+                                ? displayName[0].toUpperCase()
                                 : 'U',
                             style: const TextStyle(
                               color: Colors.white,
@@ -214,7 +248,7 @@ class HomeView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Hi, ${user.name} 👋',
+                      'Hi, $displayName 👋',
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
@@ -241,19 +275,19 @@ class HomeView extends StatelessWidget {
             children: [
               _buildStatChip(
                 Icons.star_rounded,
-                '${stats.stars}',
+                '${stats.totalStars}',
                 const Color(0xFFF59E0B),
               ),
               const SizedBox(width: 12),
               _buildStatChip(
-                Icons.monetization_on_rounded,
-                '${stats.coins}',
+                Icons.flash_on_rounded,
+                '${stats.stars.daily}',
                 const Color(0xFF10B981),
               ),
               const SizedBox(width: 12),
               _buildStatChip(
-                Icons.emoji_events_rounded,
-                '#${stats.rank}',
+                Icons.task_alt_rounded,
+                '${stats.tasks}',
                 const Color(0xFF8B5CF6),
               ),
             ],
@@ -350,7 +384,7 @@ class HomeView extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Invite your family to join (${state.homeData.familyStats.familyMembersCount} members)',
+                  'Invite your family to join (${state.homeData.familyMembers.length} members)',
                   style: const TextStyle(
                     fontSize: 14,
                     color: Color(0xFF64748B),
@@ -763,8 +797,9 @@ class HomeView extends StatelessWidget {
                 color: Color(0xFF1A202C),
               ),
             ),
+            // Show total stars and tasks (from new model)
             Text(
-              '${stats.completedTasks}/${stats.totalTasks} tasks',
+              '${stats.totalStars}/${stats.tasks} stars/tasks',
               style: const TextStyle(
                 fontSize: 14,
                 color: Color(0xFF64748B),

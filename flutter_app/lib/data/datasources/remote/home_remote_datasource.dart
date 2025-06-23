@@ -190,24 +190,21 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
 
       // Extract family statistics
       final familyStats = FamilyStats(
-        stars:
-            (userData['stars'] ??
-                    userData['totalStars'] ??
-                    familyData['totalStars'] ??
-                    familyData['stars'] ??
-                    0)
-                .toInt(),
-        coins:
-            (userData['coins'] ??
-                    userData['totalCoins'] ??
-                    familyData['totalCoins'] ??
-                    familyData['coins'] ??
-                    0)
-                .toInt(),
-        rank: (familyData['rank'] ?? 1).toInt(),
-        totalTasks: (familyData['totalTasks'] ?? 0).toInt(),
-        completedTasks: (familyData['completedTasks'] ?? 0).toInt(),
-        familyMembersCount: familyMembers.length,
+        totalStars:
+            (familyData['totalStars'] ?? familyData['stars'] ?? 0).toInt(),
+        tasks: (familyData['tasks'] ?? 0).toInt(),
+        stars: Stars(
+          daily: (familyData['stars']?['daily'] ?? 0).toInt(),
+          weekly: (familyData['stars']?['weekly'] ?? 0).toInt(),
+          monthly: (familyData['stars']?['monthly'] ?? 0).toInt(),
+          yearly: (familyData['stars']?['yearly'] ?? 0).toInt(),
+        ),
+        taskCounts: TaskCounts(
+          daily: (familyData['taskCounts']?['daily'] ?? 0).toInt(),
+          weekly: (familyData['taskCounts']?['weekly'] ?? 0).toInt(),
+          monthly: (familyData['taskCounts']?['monthly'] ?? 0).toInt(),
+          yearly: (familyData['taskCounts']?['yearly'] ?? 0).toInt(),
+        ),
       );
 
       // Convert family members
@@ -220,15 +217,13 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
                   '',
               name:
                   '${memberData['firstName']?.toString() ?? memberData['first_name']?.toString() ?? 'Member'} ${memberData['lastName']?.toString() ?? memberData['last_name']?.toString() ?? ''}',
-              email: memberData['email']?.toString() ?? '',
+              role: memberData['role']?.toString() ?? 'member',
+              gender: memberData['gender']?.toString() ?? '',
               avatar:
                   memberData['avatarUrl']?.toString() ??
                   memberData['avatar_url']?.toString() ??
                   memberData['profilePicture']?.toString() ??
                   '',
-              role: memberData['role']?.toString() ?? 'member',
-              isOnline:
-                  memberData['isOnline'] ?? memberData['is_online'] ?? false,
             );
           }).toList();
 
@@ -275,11 +270,9 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
 
       debugPrint('✅ Successfully converted backend data');
       debugPrint(
-        '👤 User: ${user.name} (${familyStats.coins} coins, ${familyStats.stars} stars)',
+        '👤 User: ${user.name} (Total Stars: ${familyStats.totalStars}, Tasks: ${familyStats.tasks})',
       );
-      debugPrint(
-        '👨‍👩‍👧‍👦 Family: ${familyStats.familyMembersCount} members, rank ${familyStats.rank}',
-      );
+      debugPrint('👨‍👩‍👧‍👦 Family: ${members.length} members');
 
       return HomeData(
         user: user,
@@ -287,6 +280,16 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         quickActions: quickActions,
         dailyMessage: dailyMessage,
         familyMembers: members,
+        familyName: familyData['familyName']?.toString() ?? '',
+        email: familyData['email']?.toString() ?? '',
+        createdAt:
+            DateTime.tryParse(familyData['createdAt']?.toString() ?? '') ??
+            DateTime.now(),
+        familyAvatar: familyData['familyAvatar']?.toString() ?? '',
+        notifications: familyData['notifications'] ?? [],
+        goals: familyData['goals'] ?? [],
+        achievements: familyData['achievements'] ?? [],
+        sharedStories: familyData['sharedStories'] ?? [],
       );
     } catch (e) {
       debugPrint('❌ Error converting backend data: $e');
@@ -297,7 +300,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   /// Convert only user data to HomeData model (when family data is not available)
   HomeData _convertUserDataToHome(Map<String, dynamic> userData) {
     debugPrint('🔄 Converting user-only data to HomeData model');
-    debugPrint('👤 User data keys: ${userData.keys.toList()}');
+    debugPrint('👤 User data keys: \\${userData.keys.toList()}');
 
     try {
       final user = UserProfile(
@@ -320,22 +323,29 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       );
 
       final familyStats = FamilyStats(
-        stars: (userData['stars'] ?? userData['totalStars'] ?? 0).toInt(),
-        coins: (userData['coins'] ?? userData['totalCoins'] ?? 0).toInt(),
-        rank: 1,
-        totalTasks: 0,
-        completedTasks: 0,
-        familyMembersCount: 1,
+        totalStars: (userData['totalStars'] ?? 0).toInt(),
+        tasks: (userData['tasks'] ?? 0).toInt(),
+        stars: Stars(
+          daily: (userData['stars']?['daily'] ?? 0).toInt(),
+          weekly: (userData['stars']?['weekly'] ?? 0).toInt(),
+          monthly: (userData['stars']?['monthly'] ?? 0).toInt(),
+          yearly: (userData['stars']?['yearly'] ?? 0).toInt(),
+        ),
+        taskCounts: TaskCounts(
+          daily: (userData['taskCounts']?['daily'] ?? 0).toInt(),
+          weekly: (userData['taskCounts']?['weekly'] ?? 0).toInt(),
+          monthly: (userData['taskCounts']?['monthly'] ?? 0).toInt(),
+          yearly: (userData['taskCounts']?['yearly'] ?? 0).toInt(),
+        ),
       );
 
       final members = [
         FamilyMember(
           id: user.id,
           name: user.name,
-          email: user.email,
-          avatar: user.avatar,
           role: 'admin',
-          isOnline: true,
+          gender: userData['gender']?.toString() ?? '',
+          avatar: user.avatar,
         ),
       ];
 
@@ -380,7 +390,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
 
       debugPrint('✅ Successfully converted user data');
       debugPrint(
-        '👤 User: ${user.name} (${familyStats.coins} coins, ${familyStats.stars} stars)',
+        '👤 User: ${user.name} (Total Stars: ${familyStats.totalStars}, Tasks: ${familyStats.tasks})',
       );
 
       return HomeData(
@@ -389,6 +399,14 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         quickActions: quickActions,
         dailyMessage: dailyMessage,
         familyMembers: members,
+        familyName: userData['familyName']?.toString() ?? '',
+        email: userData['email']?.toString() ?? '',
+        createdAt: user.createdAt,
+        familyAvatar: userData['familyAvatar']?.toString() ?? '',
+        notifications: userData['notifications'] ?? [],
+        goals: userData['goals'] ?? [],
+        achievements: userData['achievements'] ?? [],
+        sharedStories: userData['sharedStories'] ?? [],
       );
     } catch (e) {
       debugPrint('❌ Error converting user data: $e');
@@ -413,13 +431,10 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
           createdAt: currentUser.memberSince,
         ),
         familyStats: FamilyStats(
-          stars: currentUser.stars,
-          coins: currentUser.coins,
-          rank: currentUser.rankInFamily,
-          totalTasks: 0, // Initial value for new users
-          completedTasks: currentUser.nbOfTasksCompleted,
-          familyMembersCount:
-              currentUser.familyId != null ? 1 : 0, // At least the current user
+          totalStars: currentUser.stars,
+          tasks: 0,
+          stars: Stars(daily: 0, weekly: 0, monthly: 0, yearly: 0),
+          taskCounts: TaskCounts(daily: 0, weekly: 0, monthly: 0, yearly: 0),
         ),
         quickActions: [
           const QuickAction(
@@ -464,12 +479,19 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
           FamilyMember(
             id: currentUser.id,
             name: currentUser.name,
-            email: currentUser.email,
-            avatar: currentUser.avatar,
             role: currentUser.role,
-            isOnline: true,
+            gender: currentUser.gender,
+            avatar: currentUser.avatar,
           ),
         ],
+        familyName: '',
+        email: currentUser.email,
+        createdAt: currentUser.memberSince,
+        familyAvatar: '',
+        notifications: [],
+        goals: [],
+        achievements: [],
+        sharedStories: [],
       );
     }
 
@@ -482,13 +504,11 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         avatar: '',
         createdAt: DateTime.now(),
       ),
-      familyStats: const FamilyStats(
-        stars: 0,
-        coins: 0,
-        rank: 1,
-        totalTasks: 0,
-        completedTasks: 0,
-        familyMembersCount: 1,
+      familyStats: FamilyStats(
+        totalStars: 0,
+        tasks: 0,
+        stars: Stars(daily: 0, weekly: 0, monthly: 0, yearly: 0),
+        taskCounts: TaskCounts(daily: 0, weekly: 0, monthly: 0, yearly: 0),
       ),
       quickActions: [
         const QuickAction(
@@ -528,15 +548,22 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         date: DateTime.now(),
       ),
       familyMembers: [
-        const FamilyMember(
+        FamilyMember(
           id: 'temp-user',
           name: 'Guest User',
-          email: 'guest@example.com',
-          avatar: '',
           role: 'member',
-          isOnline: true,
+          gender: '',
+          avatar: '',
         ),
       ],
+      familyName: '',
+      email: '',
+      createdAt: DateTime.now(),
+      familyAvatar: '',
+      notifications: [],
+      goals: [],
+      achievements: [],
+      sharedStories: [],
     );
   }
 

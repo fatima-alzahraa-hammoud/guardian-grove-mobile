@@ -4,7 +4,6 @@ import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
 
-
 // Make sure AddFamilyMemberEvent is exported from auth_event.dart
 
 class AddMemberScreen extends StatefulWidget {
@@ -395,7 +394,7 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
       listener: (context, state) {
         if (state is AuthAuthenticated) {
           debugPrint(
-            '✅ Family member added successfully, navigating to main app',
+            '✅ Family member added successfully, navigating to main app (fromProfile: \\${widget.fromProfile})',
           );
 
           // Show success message
@@ -416,14 +415,20 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
             ),
           );
 
-          // Navigate to main app with home tab selected
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            '/main',
-            (route) => false,
-            arguments: {'initialTab': 0}, // 0 for home tab
-          );
+          // Navigation after successful add:
+          // - If fromProfile, pop to profile screen
+          // - Otherwise, always return to home (popUntil first route)
+          if (widget.fromProfile) {
+            debugPrint('🔙 Popping to profile screen');
+            Navigator.of(context).pop();
+          } else {
+            debugPrint('🏠 Returning to home (popUntil first route)');
+            Future.delayed(const Duration(milliseconds: 300), () {
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            });
+          }
         } else if (state is AuthError) {
-          debugPrint('❌ Failed to add family member: ${state.message}');
+          debugPrint('❌ Failed to add family member: \\${state.message}');
 
           // Show error message
           ScaffoldMessenger.of(context).showSnackBar(
@@ -445,7 +450,7 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
             ),
           );
         }
-      }, // Close listener function
+      },
       child: Scaffold(
         backgroundColor: const Color(0xFFF8F9FE),
         resizeToAvoidBottomInset: true,
@@ -640,27 +645,9 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
                                               child: ClipRRect(
                                                 borderRadius:
                                                     BorderRadius.circular(14),
-                                                child: Image.asset(
+                                                child: _buildAvatarImage(
                                                   avatar['path'],
-                                                  width: 66,
-                                                  height: 66,
-                                                  fit: BoxFit.cover,
-                                                  errorBuilder: (
-                                                    context,
-                                                    error,
-                                                    stackTrace,
-                                                  ) {
-                                                    return Container(
-                                                      color: Colors.grey[300],
-                                                      child: Icon(
-                                                        _memberType == 'Child'
-                                                            ? Icons.child_care
-                                                            : Icons.person,
-                                                        size: 32,
-                                                        color: Colors.grey,
-                                                      ),
-                                                    );
-                                                  },
+                                                  _memberType,
                                                 ),
                                               ),
                                             ),
@@ -1037,8 +1024,8 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
             ], // Close SafeArea Column children
           ), // Close SafeArea Column
         ), // Close SafeArea
-      ), // Close Scaffold
-    ); // Close BlocListener
+      ),
+    ); // Close Scaffold
   }
 
   Widget _buildSectionCard({required String title, required Widget child}) {
@@ -1128,10 +1115,19 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
   }
 
   Widget _buildGenderOption(String title, IconData icon, Color color) {
-    final isSelected = _selectedGender == title;
+    // Map button label to gender value
+    String genderValue;
+    if (title == 'Boy' || title == 'Father') {
+      genderValue = 'male';
+    } else if (title == 'Girl' || title == 'Mother') {
+      genderValue = 'female';
+    } else {
+      genderValue = '';
+    }
+    final isSelected = _selectedGender == genderValue;
 
     return GestureDetector(
-      onTap: () => setState(() => _selectedGender = title),
+      onTap: () => setState(() => _selectedGender = genderValue),
       child: Container(
         height: 60,
         padding: const EdgeInsets.all(16),
@@ -1159,6 +1155,26 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildAvatarImage(String path, String memberType) {
+    // Always use Image.asset for local asset avatars
+    return Image.asset(
+      path,
+      width: 66,
+      height: 66,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          color: Colors.grey[300],
+          child: Icon(
+            memberType == 'Child' ? Icons.child_care : Icons.person,
+            size: 32,
+            color: Colors.grey,
+          ),
+        );
+      },
     );
   }
 

@@ -147,9 +147,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  // Replace both _buildUserInfoCard() and _buildFamilyStatsCard() with these beautiful versions
+
   Widget _buildUserInfoCard() {
     if (currentUser == null) {
       return _buildLoadingCard();
+    }
+
+    // Handle avatar logic same as HomeScreen
+    String avatarPath = '';
+
+    if (currentUser!.avatar.isNotEmpty) {
+      if (currentUser!.avatar.startsWith('assets/')) {
+        avatarPath = currentUser!.avatar;
+      } else {
+        avatarPath = currentUser!.avatar;
+      }
     }
 
     return Container(
@@ -157,13 +170,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -172,76 +190,125 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Row(
             children: [
-              // Avatar
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF0EA5E9), Color(0xFF0284C7)],
-                  ),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF0EA5E9).withValues(alpha: 0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
+              // Beautiful Avatar with glow effect
+              Stack(
+                children: [
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [
+                          const Color(0xFF0EA5E9).withValues(alpha: 0.2),
+                          const Color(0xFF0284C7).withValues(alpha: 0.1),
+                        ],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF0EA5E9).withValues(alpha: 0.4),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child: Center(
-                  child:
-                      currentUser!.avatar.isNotEmpty
-                          ? ClipOval(
-                            child: Image.network(
-                              currentUser!.avatar,
-                              width: 60,
-                              height: 60,
-                              fit: BoxFit.cover,
-                              errorBuilder:
-                                  (context, error, stackTrace) => Text(
-                                    currentUser!.name.isNotEmpty
-                                        ? currentUser!.name[0].toUpperCase()
-                                        : 'U',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.w700,
+                  ),
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF0EA5E9), Color(0xFF0284C7)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child:
+                          avatarPath.isNotEmpty
+                              ? (avatarPath.startsWith('assets/')
+                                  ? ClipOval(
+                                    child: Image.asset(
+                                      avatarPath,
+                                      width: 80,
+                                      height: 80,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              _buildFallbackUserAvatar(),
                                     ),
-                                  ),
-                            ),
-                          )
-                          : Text(
-                            currentUser!.name.isNotEmpty
-                                ? currentUser!.name[0].toUpperCase()
-                                : 'U',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                ),
+                                  )
+                                  : ClipOval(
+                                    child: Image.network(
+                                      avatarPath,
+                                      width: 80,
+                                      height: 80,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              _buildFallbackUserAvatar(),
+                                    ),
+                                  ))
+                              : _buildFallbackUserAvatar(),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 20),
+
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Name with beautiful typography
                     Text(
-                      'Name: ${currentUser!.name}',
+                      currentUser!.name,
                       style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
                         color: Color(0xFF1A202C),
+                        letterSpacing: -0.5,
                       ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Age: ${_calculateAge(currentUser!.birthday)} years',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF64748B),
+                    const SizedBox(height: 8),
+
+                    // Beautiful role badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            const Color(0xFF0EA5E9).withValues(alpha: 0.1),
+                            const Color(0xFF0284C7).withValues(alpha: 0.05),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: const Color(0xFF0EA5E9).withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _getUserRoleEmoji(currentUser!.role),
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${currentUser!.role} • ${_calculateAge(currentUser!.birthday)} years',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF0EA5E9),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -249,12 +316,53 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
 
-          // Additional info
-          _buildInfoRow('Family email', currentUser!.email),
-          const SizedBox(height: 8),
-          _buildInfoRow('Member since', _formatDate(currentUser!.memberSince)),
+          const SizedBox(height: 24),
+
+          // Beautiful info grid
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFFF8F9FE),
+                  Colors.white.withValues(alpha: 0.5),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: const Color(0xFFE2E8F0).withValues(alpha: 0.5),
+              ),
+            ),
+            child: Column(
+              children: [
+                _buildBeautifulInfoRow(
+                  'Email',
+                  currentUser!.email,
+                  Icons.email_rounded,
+                  const Color(0xFFFF6B9D),
+                ),
+                const SizedBox(height: 16),
+                _buildBeautifulInfoRow(
+                  'Member since',
+                  _formatDate(currentUser!.memberSince),
+                  Icons.calendar_today_rounded,
+                  const Color(0xFF10B981),
+                ),
+                const SizedBox(height: 16),
+                _buildBeautifulInfoRow(
+                  'Gender',
+                  currentUser!.gender,
+                  currentUser!.gender.toLowerCase() == 'male'
+                      ? Icons.male_rounded
+                      : Icons.female_rounded,
+                  const Color(0xFF8B5CF6),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -263,216 +371,490 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildFamilyStatsCard() {
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
-        FamilyStats? familyStats;
+        // Default values
         String familyName = 'Your Family';
+        String familyAvatar = '';
+        int totalStars = 0;
+        int totalTasks = 0;
+        List<FamilyMember> familyMembers = [];
 
+        // Get data from HomeBloc state AND handle member count correctly
         if (state is HomeLoaded) {
-          familyStats = state.homeData.familyStats;
-          // Try to get family name from home data or use a default
+          final homeData = state.homeData;
           familyName =
-              'Your Family'; // You might want to add family name to your models
-        } else if (currentUser != null) {
-          // Fallback to current user data
-          familyStats = FamilyStats(
-            stars: currentUser!.stars,
-            coins: currentUser!.coins,
-            rank: currentUser!.rankInFamily,
-            totalTasks: 0,
-            completedTasks: currentUser!.nbOfTasksCompleted,
-            familyMembersCount: 1,
-          );
+              homeData.familyName.isNotEmpty
+                  ? homeData.familyName
+                  : 'Your Family';
+          familyAvatar = homeData.familyAvatar;
+          totalStars = homeData.familyStats.totalStars;
+          totalTasks = homeData.familyStats.tasks;
+          familyMembers = homeData.familyMembers; // Get actual family members
         }
 
-        if (familyStats == null) {
-          return _buildLoadingCard();
+        // If no family members from state, fallback to current user
+        if (familyMembers.isEmpty && currentUser != null) {
+          familyMembers = [
+            FamilyMember(
+              id: currentUser!.id,
+              name: currentUser!.name,
+              avatar: currentUser!.avatar,
+              role: currentUser!.role,
+              gender: currentUser!.gender,
+            ),
+          ];
         }
 
         return Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(28),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+            gradient: const LinearGradient(
+              colors: [Color(0xFF10B981), Color(0xFF059669), Color(0xFF047857)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(28),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
+                color: const Color(0xFF10B981).withValues(alpha: 0.4),
+                blurRadius: 24,
+                offset: const Offset(0, 12),
+              ),
+              BoxShadow(
+                color: const Color(0xFF10B981).withValues(alpha: 0.2),
+                blurRadius: 40,
+                offset: const Offset(0, 20),
               ),
             ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Family header with avatar
+              // Family header with glassmorphism effect
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.2),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    // Improved Family Avatar
+                    Stack(
+                      children: [
+                        Container(
+                          width: 70,
+                          height: 70,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.white.withValues(alpha: 0.3),
+                                blurRadius: 15,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          width: 70,
+                          height: 70,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.3),
+                              width: 2,
+                            ),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(18),
+                            child:
+                                familyAvatar.isNotEmpty
+                                    ? (familyAvatar.startsWith('assets/')
+                                        ? Image.asset(
+                                          familyAvatar,
+                                          width: 70,
+                                          height: 70,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  _buildFallbackFamilyIcon(),
+                                        )
+                                        : Image.network(
+                                          familyAvatar,
+                                          width: 70,
+                                          height: 70,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  _buildFallbackFamilyIcon(),
+                                        ))
+                                    : _buildFallbackFamilyIcon(),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(width: 20),
+
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Family name with better typography
+                          Row(
+                            children: [
+                              const Text('🏠', style: TextStyle(fontSize: 20)),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  familyName,
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                    letterSpacing: -0.5,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+
+                          // Beautiful member count badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.3),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.group_rounded,
+                                  size: 16,
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '${familyMembers.length} ${familyMembers.length == 1 ? 'member' : 'members'}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.white.withValues(alpha: 0.95),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Beautiful stats cards with improved design
               Row(
                 children: [
-                  // Family Avatar
-                  Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF10B981), Color(0xFF059669)],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF10B981).withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
+                  // Total Stars Card
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.25),
                         ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.home_rounded,
-                      color: Colors.white,
-                      size: 24,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.25),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.white.withValues(alpha: 0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.star_rounded,
+                              color: Colors.white,
+                              size: 28,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            '$totalStars',
+                            style: const TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              letterSpacing: -1,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Total Stars',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white.withValues(alpha: 0.9),
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
+
                   const SizedBox(width: 16),
+
+                  // Total Tasks Card
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Your family: $familyName (${familyStats.familyMembersCount} members)',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF1A202C),
-                          ),
+                    child: Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.25),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Total family stars: ${familyStats.stars}',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF64748B),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.25),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.white.withValues(alpha: 0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.task_alt_rounded,
+                              color: Colors.white,
+                              size: 28,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            '$totalTasks',
+                            style: const TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              letterSpacing: -1,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Total Tasks',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white.withValues(alpha: 0.9),
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
+
               const SizedBox(height: 20),
 
-              // Coins and Rank Row
-              Row(
-                children: [
-                  // Coins section
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF8F9FE),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: const Color(
-                                0xFFF59E0B,
-                              ).withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.monetization_on_rounded,
-                              color: Color(0xFFF59E0B),
-                              size: 20,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Your coins',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Color(0xFF64748B),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              Text(
-                                '${familyStats.coins}',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  color: Color(0xFF1A202C),
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+              // Motivational message with animation-ready design
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.trending_up_rounded,
+                      color: Colors.white.withValues(alpha: 0.9),
+                      size: 20,
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Keep up the amazing work! 🌟',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white.withValues(alpha: 0.95),
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  // Rank section
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF8F9FE),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: const Color(
-                                0xFF8B5CF6,
-                              ).withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.emoji_events_rounded,
-                              color: Color(0xFF8B5CF6),
-                              size: 20,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Your rank',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Color(0xFF64748B),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              Text(
-                                '#${familyStats.rank}',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  color: Color(0xFF1A202C),
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  // Helper methods
+  Widget _buildFallbackUserAvatar() {
+    return Text(
+      currentUser!.name.isNotEmpty ? currentUser!.name[0].toUpperCase() : 'U',
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 32,
+        fontWeight: FontWeight.w800,
+      ),
+    );
+  }
+
+  Widget _buildFallbackFamilyIcon() {
+    return Container(
+      width: 70,
+      height: 70,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.white.withValues(alpha: 0.3),
+            Colors.white.withValues(alpha: 0.1),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: const Icon(Icons.home_rounded, color: Colors.white, size: 32),
+    );
+  }
+
+  String _getUserRoleEmoji(String role) {
+    switch (role.toLowerCase()) {
+      case 'father':
+      case 'dad':
+        return '👨‍💼';
+      case 'mother':
+      case 'mom':
+        return '👩‍💼';
+      case 'child':
+      case 'son':
+        return '👦';
+      case 'daughter':
+        return '👧';
+      default:
+        return '👤';
+    }
+  }
+
+  Widget _buildBeautifulInfoRow(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, size: 20, color: color),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF64748B),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF1A202C),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -489,10 +871,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             FamilyMember(
               id: currentUser!.id,
               name: currentUser!.name,
-              email: currentUser!.email,
               avatar: currentUser!.avatar,
               role: currentUser!.role,
-              isOnline: true,
+              gender: currentUser!.gender,
             ),
           ];
         }
@@ -613,10 +994,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             gradient: _getMemberGradient(member.role),
                             borderRadius: BorderRadius.circular(30),
                             border: Border.all(
-                              color:
-                                  member.isOnline
-                                      ? const Color(0xFF10B981)
-                                      : const Color(0xFFE2E8F0),
+                              color: const Color(0xFFE2E8F0),
                               width: 2,
                             ),
                             boxShadow: [
@@ -805,14 +1183,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 20),
 
                   // Basic info for all members
-                  _buildDialogInfoRow('Email', member.email),
-                  const SizedBox(height: 12),
                   _buildDialogInfoRow('Role', member.role),
-                  const SizedBox(height: 12),
-                  _buildDialogInfoRow(
-                    'Status',
-                    member.isOnline ? 'Online' : 'Offline',
-                  ),
+                  _buildDialogInfoRow('Gender', member.gender),
 
                   const SizedBox(height: 24),
 
@@ -880,35 +1252,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       children: [
         SizedBox(
           width: 60,
-          child: Text(
-            '$label:',
-            style: const TextStyle(
-              fontSize: 14,
-              color: Color(0xFF64748B),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Color(0xFF1A202C),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 120,
           child: Text(
             '$label:',
             style: const TextStyle(

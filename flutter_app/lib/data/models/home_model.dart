@@ -4,13 +4,29 @@ class HomeData {
   final List<QuickAction> quickActions;
   final DailyMessage dailyMessage;
   final List<FamilyMember> familyMembers;
+  final String familyName;
+  final String email;
+  final DateTime createdAt;
+  final String familyAvatar;
+  final List<dynamic> notifications;
+  final List<dynamic> goals;
+  final List<dynamic> achievements;
+  final List<dynamic> sharedStories;
 
-  const HomeData({
+  HomeData({
     required this.user,
     required this.familyStats,
     required this.quickActions,
     required this.dailyMessage,
     required this.familyMembers,
+    required this.familyName,
+    required this.email,
+    required this.createdAt,
+    required this.familyAvatar,
+    required this.notifications,
+    required this.goals,
+    required this.achievements,
+    required this.sharedStories,
   });
 
   factory HomeData.fromJson(Map<String, dynamic> json) {
@@ -24,10 +40,18 @@ class HomeData {
           [],
       dailyMessage: DailyMessage.fromJson(json['daily_message'] ?? {}),
       familyMembers:
-          (json['family_members'] as List<dynamic>?)
+          (json['members'] as List<dynamic>?)
               ?.map((member) => FamilyMember.fromJson(member))
               .toList() ??
           [],
+      familyName: json['familyName'] ?? '',
+      email: json['email'] ?? '',
+      createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
+      familyAvatar: json['familyAvatar'] ?? '',
+      notifications: json['notifications'] ?? [],
+      goals: json['goals'] ?? [],
+      achievements: json['achievements'] ?? [],
+      sharedStories: json['sharedStories'] ?? [],
     );
   }
 }
@@ -59,30 +83,70 @@ class UserProfile {
 }
 
 class FamilyStats {
-  final int stars;
-  final int coins;
-  final int rank;
-  final int totalTasks;
-  final int completedTasks;
-  final int familyMembersCount;
+  final int totalStars;
+  final int tasks;
+  final Stars stars;
+  final TaskCounts taskCounts;
 
-  const FamilyStats({
+  FamilyStats({
+    required this.totalStars,
+    required this.tasks,
     required this.stars,
-    required this.coins,
-    required this.rank,
-    required this.totalTasks,
-    required this.completedTasks,
-    required this.familyMembersCount,
+    required this.taskCounts,
   });
 
   factory FamilyStats.fromJson(Map<String, dynamic> json) {
     return FamilyStats(
-      stars: json['stars'] ?? 0,
-      coins: json['coins'] ?? 0,
-      rank: json['rank'] ?? 0,
-      totalTasks: json['total_tasks'] ?? 0,
-      completedTasks: json['completed_tasks'] ?? 0,
-      familyMembersCount: json['family_members_count'] ?? 0,
+      totalStars: json['totalStars'] ?? 0,
+      tasks: json['tasks'] ?? 0,
+      stars: Stars.fromJson(json['stars'] ?? {}),
+      taskCounts: TaskCounts.fromJson(json['taskCounts'] ?? {}),
+    );
+  }
+}
+
+class Stars {
+  final int daily;
+  final int weekly;
+  final int monthly;
+  final int yearly;
+
+  Stars({
+    required this.daily,
+    required this.weekly,
+    required this.monthly,
+    required this.yearly,
+  });
+
+  factory Stars.fromJson(Map<String, dynamic> json) {
+    return Stars(
+      daily: json['daily'] ?? 0,
+      weekly: json['weekly'] ?? 0,
+      monthly: json['monthly'] ?? 0,
+      yearly: json['yearly'] ?? 0,
+    );
+  }
+}
+
+class TaskCounts {
+  final int daily;
+  final int weekly;
+  final int monthly;
+  final int yearly;
+
+  TaskCounts({
+    required this.daily,
+    required this.weekly,
+    required this.monthly,
+    required this.yearly,
+  });
+
+  factory TaskCounts.fromJson(Map<String, dynamic> json) {
+    return TaskCounts(
+      daily: json['daily'] ?? 0,
+      weekly: json['weekly'] ?? 0,
+      monthly: json['monthly'] ?? 0,
+      yearly: json['yearly'] ?? 0,
     );
   }
 }
@@ -144,28 +208,25 @@ class DailyMessage {
 class FamilyMember {
   final String id;
   final String name;
-  final String email;
+  final String role; // parent, admin, child
+  final String gender; // female, male
   final String avatar;
-  final String role;
-  final bool isOnline;
 
-  const FamilyMember({
+  FamilyMember({
     required this.id,
     required this.name,
-    required this.email,
-    required this.avatar,
     required this.role,
-    this.isOnline = false,
+    required this.gender,
+    required this.avatar,
   });
 
   factory FamilyMember.fromJson(Map<String, dynamic> json) {
     return FamilyMember(
-      id: json['id'] ?? '',
+      id: json['_id'] ?? '',
       name: json['name'] ?? '',
-      email: json['email'] ?? '',
-      avatar: json['avatar'] ?? '',
       role: json['role'] ?? 'member',
-      isOnline: json['is_online'] ?? false,
+      gender: json['gender'] ?? '',
+      avatar: json['avatar'] ?? '',
     );
   }
 }

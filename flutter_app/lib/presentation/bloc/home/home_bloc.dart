@@ -83,11 +83,22 @@ class HomeLoaded extends HomeState {
   // Convenience getters for backward compatibility
   String get userName => homeData.user.name;
   String get avatar => homeData.user.avatar;
-  int get stars => homeData.familyStats.stars;
-  int get coins => homeData.familyStats.coins;
-  int get rank => homeData.familyStats.rank;
+  int get stars => homeData.familyStats.totalStars;
+  // coins and rank are not in the new FamilyStats model, so remove or mock as needed
+  int get coins => 0;
+  int get rank => 0;
   double get progressToNextLevel => 0.7; // Mock for now
   int get awards => 15; // Mock for now
+
+  // Example: expose more family values for use in profile or elsewhere
+  String get familyName => homeData.familyName;
+  String get familyAvatar => homeData.familyAvatar;
+  String get familyEmail => homeData.email;
+  DateTime get familyCreatedAt => homeData.createdAt;
+  List<dynamic> get familyNotifications => homeData.notifications;
+  List<dynamic> get familyGoals => homeData.goals;
+  List<dynamic> get familyAchievements => homeData.achievements;
+  List<dynamic> get familySharedStories => homeData.sharedStories;
 
   @override
   List<Object> get props => [homeData];
@@ -159,13 +170,16 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
               avatar: '',
               createdAt: DateTime.now(),
             ),
-            familyStats: const FamilyStats(
-              stars: 250,
-              coins: 120,
-              rank: 2,
-              totalTasks: 20,
-              completedTasks: 14,
-              familyMembersCount: 3,
+            familyStats: FamilyStats(
+              totalStars: 250,
+              tasks: 20,
+              stars: Stars(daily: 10, weekly: 50, monthly: 100, yearly: 250),
+              taskCounts: TaskCounts(
+                daily: 2,
+                weekly: 10,
+                monthly: 18,
+                yearly: 20,
+              ),
             ),
             quickActions: [],
             dailyMessage: DailyMessage(
@@ -176,6 +190,14 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
               date: DateTime.now(),
             ),
             familyMembers: [],
+            familyName: 'Rmaity',
+            email: 'fatima@example.com',
+            createdAt: DateTime.now(),
+            familyAvatar: 'assets/images/avatars/family/avatar1.png',
+            notifications: [],
+            goals: [],
+            achievements: [],
+            sharedStories: [],
           ),
         ),
       );
@@ -310,12 +332,15 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
                   createdAt: currentUser.memberSince,
                 ),
                 familyStats: FamilyStats(
-                  stars: currentUser.stars,
-                  coins: currentUser.coins,
-                  rank: currentUser.rankInFamily,
-                  totalTasks: 0,
-                  completedTasks: currentUser.nbOfTasksCompleted,
-                  familyMembersCount: 1,
+                  totalStars: currentUser.stars,
+                  tasks: 0,
+                  stars: Stars(daily: 0, weekly: 0, monthly: 0, yearly: 0),
+                  taskCounts: TaskCounts(
+                    daily: 0,
+                    weekly: 0,
+                    monthly: 0,
+                    yearly: 0,
+                  ),
                 ),
                 quickActions: [],
                 dailyMessage: DailyMessage(
@@ -331,12 +356,19 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
                   FamilyMember(
                     id: currentUser.id,
                     name: currentUser.name,
-                    email: currentUser.email,
                     avatar: currentUser.avatar,
                     role: currentUser.role,
-                    isOnline: true,
+                    gender: currentUser.gender,
                   ),
                 ],
+                familyName: 'Your Family',
+                email: currentUser.email,
+                createdAt: currentUser.memberSince,
+                familyAvatar: '',
+                notifications: [],
+                goals: [],
+                achievements: [],
+                sharedStories: [],
               ),
             ),
           );
@@ -352,13 +384,16 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
                   avatar: '',
                   createdAt: DateTime.now(),
                 ),
-                familyStats: const FamilyStats(
-                  stars: 0,
-                  coins: 0,
-                  rank: 1,
-                  totalTasks: 0,
-                  completedTasks: 0,
-                  familyMembersCount: 1,
+                familyStats: FamilyStats(
+                  totalStars: 0,
+                  tasks: 0,
+                  stars: Stars(daily: 0, weekly: 0, monthly: 0, yearly: 0),
+                  taskCounts: TaskCounts(
+                    daily: 0,
+                    weekly: 0,
+                    monthly: 0,
+                    yearly: 0,
+                  ),
                 ),
                 quickActions: [],
                 dailyMessage: DailyMessage(
@@ -369,6 +404,14 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
                   date: DateTime.now(),
                 ),
                 familyMembers: [],
+                familyName: 'Your Family',
+                email: 'guest@example.com',
+                createdAt: DateTime.now(),
+                familyAvatar: '',
+                notifications: [],
+                goals: [],
+                achievements: [],
+                sharedStories: [],
               ),
             ),
           );
@@ -426,6 +469,14 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
             quickActions: currentState.homeData.quickActions,
             dailyMessage: dailyMessage,
             familyMembers: currentState.homeData.familyMembers,
+            familyName: currentState.homeData.familyName,
+            email: currentState.homeData.email,
+            createdAt: currentState.homeData.createdAt,
+            familyAvatar: currentState.homeData.familyAvatar,
+            notifications: currentState.homeData.notifications,
+            goals: currentState.homeData.goals,
+            achievements: currentState.homeData.achievements,
+            sharedStories: currentState.homeData.sharedStories,
           );
           emit(HomeLoaded(homeData: updatedHomeData));
         }
