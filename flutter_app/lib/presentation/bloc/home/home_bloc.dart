@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import '../../../data/models/home_model.dart';
 import '../../../data/datasources/remote/home_remote_datasource.dart';
 import '../../../core/services/storage_service.dart';
+import '../../../data/models/family_model.dart' show FamilyMember;
 
 // Events
 abstract class HomeEvent extends Equatable {
@@ -163,6 +164,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       emit(
         HomeLoaded(
           homeData: HomeData(
+            id: 'family-1', // mock id for demo event
             user: UserProfile(
               id: 'user-1',
               name: 'Fatima A.',
@@ -324,6 +326,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           emit(
             HomeLoaded(
               homeData: HomeData(
+                id: currentUser.id, // use user id as fallback for family id
                 user: UserProfile(
                   id: currentUser.id,
                   name: currentUser.name,
@@ -377,6 +380,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           emit(
             HomeLoaded(
               homeData: HomeData(
+                id: 'temp-user', // fallback id for guest
                 user: UserProfile(
                   id: 'temp-user',
                   name: 'Guest User',
@@ -464,6 +468,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           final dailyMessage = await homeDataSource!.refreshDailyMessage();
           final currentState = state as HomeLoaded;
           final updatedHomeData = HomeData(
+            id: currentState.homeData.id, // preserve id
             user: currentState.homeData.user,
             familyStats: currentState.homeData.familyStats,
             quickActions: currentState.homeData.quickActions,

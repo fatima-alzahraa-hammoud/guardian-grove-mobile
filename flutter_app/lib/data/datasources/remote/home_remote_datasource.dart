@@ -3,11 +3,13 @@ import 'package:flutter/foundation.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/services/storage_service.dart';
 import '../../models/home_model.dart';
+import '../../models/family_model.dart' as fam;
 
 abstract class HomeRemoteDataSource {
   Future<HomeData> getHomeData();
   Future<void> inviteFamilyMember(String email);
   Future<DailyMessage> refreshDailyMessage();
+  Future<List<fam.FamilyMember>> getFamilyMembers();
 }
 
 class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
@@ -156,6 +158,57 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
     }
   }
 
+  @override
+  Future<List<fam.FamilyMember>> getFamilyMembers() async {
+    debugPrint('👥 Fetching family members from backend');
+
+    try {
+      final response = await apiClient.dio.get('/family/FamilyMembers');
+
+      if (response.statusCode == 200) {
+        debugPrint('✅ Family members received from API');
+        final membersData = response.data['data'] ?? response.data;
+
+        if (membersData is List) {
+          return List<fam.FamilyMember>.from(
+            membersData.map(
+              (memberData) => fam.FamilyMember(
+                id:
+                    memberData['_id']?.toString() ??
+                    memberData['id']?.toString() ??
+                    '',
+                name:
+                    '${memberData['firstName']?.toString() ?? memberData['first_name']?.toString() ?? 'Member'} ${memberData['lastName']?.toString() ?? memberData['last_name']?.toString() ?? ''}',
+                role: memberData['role']?.toString() ?? 'member',
+                gender: memberData['gender']?.toString() ?? '',
+                avatar: memberData['avatar']?.toString() ?? '',
+                birthday:
+                    memberData['birthday'] != null
+                        ? DateTime.tryParse(memberData['birthday'].toString())
+                        : null,
+                interests:
+                    memberData['interests'] != null &&
+                            memberData['interests'] is List
+                        ? List<String>.from(memberData['interests'])
+                        : <String>[],
+              ),
+            ),
+          );
+        }
+      } else {
+        debugPrint('❌ Failed to fetch family members: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      debugPrint(
+        '🌐 API Error fetching family members: ${e.response?.statusCode} - ${e.message}',
+      );
+    } catch (e) {
+      debugPrint('❌ Unexpected error fetching family members: $e');
+    }
+
+    return [];
+  }
+
   /// Convert backend user and family data to HomeData model
   HomeData _convertBackendDataToHome(
     Map<String, dynamic> userData,
@@ -210,7 +263,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       // Convert family members
       final members =
           familyMembers.map((memberData) {
-            return FamilyMember(
+            return fam.FamilyMember(
               id:
                   memberData['_id']?.toString() ??
                   memberData['id']?.toString() ??
@@ -219,11 +272,16 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
                   '${memberData['firstName']?.toString() ?? memberData['first_name']?.toString() ?? 'Member'} ${memberData['lastName']?.toString() ?? memberData['last_name']?.toString() ?? ''}',
               role: memberData['role']?.toString() ?? 'member',
               gender: memberData['gender']?.toString() ?? '',
-              avatar:
-                  memberData['avatarUrl']?.toString() ??
-                  memberData['avatar_url']?.toString() ??
-                  memberData['profilePicture']?.toString() ??
-                  '',
+              avatar: memberData['avatar']?.toString() ?? '',
+              birthday:
+                  memberData['birthday'] != null
+                      ? DateTime.tryParse(memberData['birthday'].toString())
+                      : null,
+              interests:
+                  memberData['interests'] != null &&
+                          memberData['interests'] is List
+                      ? List<String>.from(memberData['interests'])
+                      : <String>[],
             );
           }).toList();
 
@@ -275,6 +333,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       debugPrint('👨‍👩‍👧‍👦 Family: ${members.length} members');
 
       return HomeData(
+        id: familyData['_id']?.toString() ?? familyData['id']?.toString() ?? '',
         user: user,
         familyStats: familyStats,
         quickActions: quickActions,
@@ -340,7 +399,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       );
 
       final members = [
-        FamilyMember(
+        fam.FamilyMember(
           id: user.id,
           name: user.name,
           role: 'admin',
@@ -394,6 +453,10 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       );
 
       return HomeData(
+        id:
+            userData['familyId']?.toString() ??
+            userData['family_id']?.toString() ??
+            '',
         user: user,
         familyStats: familyStats,
         quickActions: quickActions,
@@ -423,6 +486,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
 
     if (currentUser != null) {
       return HomeData(
+        id: currentUser.id,
         user: UserProfile(
           id: currentUser.id,
           name: currentUser.name,
@@ -438,36 +502,15 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         ),
         quickActions: [
           const QuickAction(
-            id: 'notes',
-            title: 'Notes',
-            icon: 'note_alt_rounded',
-            route: '/notes',
-            color: '#FF6B9D',
-          ),
-          const QuickAction(
-            id: 'bonding',
-            title: 'Bonding',
-            icon: 'favorite_rounded',
-            route: '/bonding',
-            color: '#8B5CF6',
-          ),
-          const QuickAction(
-            id: 'learn',
-            title: 'Learn',
-            icon: 'school_rounded',
-            route: '/learn',
-            color: '#10B981',
-          ),
-          const QuickAction(
-            id: 'calendar',
-            title: 'Calendar',
-            icon: 'calendar_today_rounded',
-            route: '/calendar',
-            color: '#F59E0B',
+            id: '1',
+            title: 'Create Activity',
+            icon: 'add_task',
+            route: '/create_activity',
+            color: '#4CAF50',
           ),
         ],
         dailyMessage: DailyMessage(
-          id: 'msg-${DateTime.now().millisecondsSinceEpoch}',
+          id: 'msg-1',
           message:
               currentUser.dailyMessage.isNotEmpty
                   ? currentUser.dailyMessage
@@ -476,7 +519,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
           date: DateTime.now(),
         ),
         familyMembers: [
-          FamilyMember(
+          fam.FamilyMember(
             id: currentUser.id,
             name: currentUser.name,
             role: currentUser.role,
@@ -497,6 +540,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
 
     // Fallback if no user in storage
     return HomeData(
+      id: 'temp-user',
       user: UserProfile(
         id: 'temp-user',
         name: 'Guest User',
@@ -512,32 +556,11 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       ),
       quickActions: [
         const QuickAction(
-          id: 'notes',
-          title: 'Notes',
-          icon: 'note_alt_rounded',
-          route: '/notes',
-          color: '#FF6B9D',
-        ),
-        const QuickAction(
-          id: 'bonding',
-          title: 'Bonding',
-          icon: 'favorite_rounded',
-          route: '/bonding',
-          color: '#8B5CF6',
-        ),
-        const QuickAction(
-          id: 'learn',
-          title: 'Learn',
-          icon: 'school_rounded',
-          route: '/learn',
-          color: '#10B981',
-        ),
-        const QuickAction(
-          id: 'calendar',
-          title: 'Calendar',
-          icon: 'calendar_today_rounded',
-          route: '/calendar',
-          color: '#F59E0B',
+          id: '1',
+          title: 'Create Activity',
+          icon: 'add_task',
+          route: '/create_activity',
+          color: '#4CAF50',
         ),
       ],
       dailyMessage: DailyMessage(
@@ -548,7 +571,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         date: DateTime.now(),
       ),
       familyMembers: [
-        FamilyMember(
+        fam.FamilyMember(
           id: 'temp-user',
           name: 'Guest User',
           role: 'member',

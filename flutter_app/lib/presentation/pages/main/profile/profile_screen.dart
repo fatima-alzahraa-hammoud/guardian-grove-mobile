@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/core/services/storage_service.dart';
 import 'package:flutter_app/data/models/home_model.dart';
 import 'package:flutter_app/data/models/user_model.dart';
+import 'package:flutter_app/data/models/family_model.dart' show FamilyMember;
 import 'package:flutter_app/presentation/bloc/auth/auth_bloc.dart';
 import 'package:flutter_app/presentation/bloc/auth/auth_event.dart';
 import 'package:flutter_app/presentation/bloc/home/home_bloc.dart';
@@ -154,16 +155,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return _buildLoadingCard();
     }
 
-    // Handle avatar logic same as HomeScreen
-    String avatarPath = '';
-
-    if (currentUser!.avatar.isNotEmpty) {
-      if (currentUser!.avatar.startsWith('assets/')) {
-        avatarPath = currentUser!.avatar;
-      } else {
-        avatarPath = currentUser!.avatar;
-      }
-    }
+    // Use new FamilyMember model fields if available (for consistency)
+    String avatarPath = currentUser!.avatar;
 
     return Container(
       width: double.infinity,
@@ -256,7 +249,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
               const SizedBox(width: 20),
-
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -316,10 +308,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ],
           ),
-
           const SizedBox(height: 24),
-
-          // Beautiful info grid
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -378,20 +367,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
         int totalTasks = 0;
         List<FamilyMember> familyMembers = [];
 
-        // Get data from HomeBloc state AND handle member count correctly
         if (state is HomeLoaded) {
           final homeData = state.homeData;
-          familyName =
-              homeData.familyName.isNotEmpty
-                  ? homeData.familyName
-                  : 'Your Family';
+          familyName = homeData.familyName;
           familyAvatar = homeData.familyAvatar;
           totalStars = homeData.familyStats.totalStars;
           totalTasks = homeData.familyStats.tasks;
-          familyMembers = homeData.familyMembers; // Get actual family members
+          familyMembers = homeData.familyMembers;
         }
 
-        // If no family members from state, fallback to current user
         if (familyMembers.isEmpty && currentUser != null) {
           familyMembers = [
             FamilyMember(
@@ -506,7 +490,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
                     const SizedBox(width: 20),
-
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -589,9 +572,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
+                            color: Colors.white.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
                           ),
                         ],
                       ),
@@ -656,9 +639,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
+                            color: Colors.white.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
                           ),
                         ],
                       ),
@@ -1010,21 +993,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           child:
                               member.avatar.isNotEmpty
                                   ? ClipOval(
-                                    child: Image.network(
-                                      member.avatar,
-                                      width: 60,
-                                      height: 60,
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) =>
-                                              Center(
-                                                child: Icon(
-                                                  _getMemberIcon(member.role),
-                                                  color: Colors.white,
-                                                  size: 24,
-                                                ),
-                                              ),
-                                    ),
+                                    child:
+                                        member.avatar.startsWith('assets/')
+                                            ? Image.asset(
+                                              member.avatar,
+                                              width: 60,
+                                              height: 60,
+                                              fit: BoxFit.cover,
+                                              errorBuilder:
+                                                  (
+                                                    context,
+                                                    error,
+                                                    stackTrace,
+                                                  ) => Center(
+                                                    child: Icon(
+                                                      _getMemberIcon(
+                                                        member.role,
+                                                      ),
+                                                      color: Colors.white,
+                                                      size: 24,
+                                                    ),
+                                                  ),
+                                            )
+                                            : Image.network(
+                                              member.avatar,
+                                              width: 60,
+                                              height: 60,
+                                              fit: BoxFit.cover,
+                                              errorBuilder:
+                                                  (
+                                                    context,
+                                                    error,
+                                                    stackTrace,
+                                                  ) => Center(
+                                                    child: Icon(
+                                                      _getMemberIcon(
+                                                        member.role,
+                                                      ),
+                                                      color: Colors.white,
+                                                      size: 24,
+                                                    ),
+                                                  ),
+                                            ),
                                   )
                                   : Icon(
                                     _getMemberIcon(member.role),
@@ -1118,7 +1128,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Member Avatar
+                  // Member Avatar (robust asset/network logic)
                   Container(
                     width: 80,
                     height: 80,
@@ -1138,18 +1148,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child:
                         member.avatar.isNotEmpty
                             ? ClipOval(
-                              child: Image.network(
-                                member.avatar,
-                                width: 80,
-                                height: 80,
-                                fit: BoxFit.cover,
-                                errorBuilder:
-                                    (context, error, stackTrace) => Icon(
-                                      _getMemberIcon(member.role),
-                                      color: Colors.white,
-                                      size: 32,
-                                    ),
-                              ),
+                              child:
+                                  member.avatar.startsWith('assets/')
+                                      ? Image.asset(
+                                        member.avatar,
+                                        width: 80,
+                                        height: 80,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                Icon(
+                                                  _getMemberIcon(member.role),
+                                                  color: Colors.white,
+                                                  size: 32,
+                                                ),
+                                      )
+                                      : Image.network(
+                                        member.avatar,
+                                        width: 80,
+                                        height: 80,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                Icon(
+                                                  _getMemberIcon(member.role),
+                                                  color: Colors.white,
+                                                  size: 32,
+                                                ),
+                                      ),
                             )
                             : Icon(
                               _getMemberIcon(member.role),
@@ -1185,6 +1211,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   // Basic info for all members
                   _buildDialogInfoRow('Role', member.role),
                   _buildDialogInfoRow('Gender', member.gender),
+                  // Show birthday if present
+                  if (member.birthday != null)
+                    _buildDialogInfoRow(
+                      'Birthday',
+                      _formatDate(member.birthday!),
+                    ),
+                  // Show interests if present
+                  if (member.interests.isNotEmpty)
+                    _buildDialogInfoRow(
+                      'Interests',
+                      member.interests.join(', '),
+                    ),
 
                   const SizedBox(height: 24),
 

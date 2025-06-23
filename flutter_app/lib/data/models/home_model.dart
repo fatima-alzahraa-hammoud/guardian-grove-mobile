@@ -1,4 +1,7 @@
+import 'family_model.dart' show FamilyMember;
+
 class HomeData {
+  final String id;
   final UserProfile user;
   final FamilyStats familyStats;
   final List<QuickAction> quickActions;
@@ -14,6 +17,7 @@ class HomeData {
   final List<dynamic> sharedStories;
 
   HomeData({
+    required this.id,
     required this.user,
     required this.familyStats,
     required this.quickActions,
@@ -31,6 +35,7 @@ class HomeData {
 
   factory HomeData.fromJson(Map<String, dynamic> json) {
     return HomeData(
+      id: json['_id'] ?? json['id'] ?? '',
       user: UserProfile.fromJson(json['user'] ?? {}),
       familyStats: FamilyStats.fromJson(json['family_stats'] ?? {}),
       quickActions:
@@ -40,11 +45,10 @@ class HomeData {
           [],
       dailyMessage: DailyMessage.fromJson(json['daily_message'] ?? {}),
       familyMembers:
-          (json['members'] as List<dynamic>?)
-              ?.map((member) => FamilyMember.fromJson(member))
-              .toList() ??
-          [],
-      familyName: json['familyName'] ?? '',
+          (json['members'] as List<dynamic>? ?? [])
+              .map((member) => FamilyMember.fromJson(member))
+              .toList(),
+      familyName: json['familyName'] ?? json['name'] ?? '',
       email: json['email'] ?? '',
       createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
       familyAvatar: json['familyAvatar'] ?? '',
@@ -201,32 +205,6 @@ class DailyMessage {
           'Every day is a new adventure waiting to unfold with your family!',
       category: json['category'] ?? 'Inspiration',
       date: DateTime.tryParse(json['date'] ?? '') ?? DateTime.now(),
-    );
-  }
-}
-
-class FamilyMember {
-  final String id;
-  final String name;
-  final String role; // parent, admin, child
-  final String gender; // female, male
-  final String avatar;
-
-  FamilyMember({
-    required this.id,
-    required this.name,
-    required this.role,
-    required this.gender,
-    required this.avatar,
-  });
-
-  factory FamilyMember.fromJson(Map<String, dynamic> json) {
-    return FamilyMember(
-      id: json['_id'] ?? '',
-      name: json['name'] ?? '',
-      role: json['role'] ?? 'member',
-      gender: json['gender'] ?? '',
-      avatar: json['avatar'] ?? '',
     );
   }
 }
