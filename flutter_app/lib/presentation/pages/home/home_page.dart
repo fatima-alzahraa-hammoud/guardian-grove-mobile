@@ -9,6 +9,9 @@ import '../auth/add_member_screen.dart';
 import '../../../core/services/storage_service.dart';
 import 'home_subScreens/family_tree_screen.dart';
 import 'home_subScreens/family_journal.dart';
+import 'package:dio/dio.dart';
+import '../../../core/constants/app_constants.dart';
+import '../../../data/models/family_model.dart' show FamilyMember;
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -22,8 +25,137 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-class HomeView extends StatelessWidget {
+class HomeView extends StatefulWidget {
   const HomeView({super.key});
+
+  @override
+  State<HomeView> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends State<HomeView> {
+  List<FamilyMember> _familyMembers = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFamilyMembersDirectly();
+  }
+
+  Future<void> _loadFamilyMembersDirectly() async {
+    try {
+      final dio = Dio();
+      final token = StorageService.getToken();
+      if (token != null) {
+        dio.options.headers['Authorization'] = 'Bearer $token';
+      }
+      dio.options.baseUrl = AppConstants.baseUrl;
+      dio.options.connectTimeout = const Duration(seconds: 10);
+      dio.options.receiveTimeout = const Duration(seconds: 10);
+
+      final userResponse = await dio.get('/users/user');
+      final userData = userResponse.data['user'] ?? userResponse.data;
+      final familyId = userData['familyId'];
+      if (familyId == null) return;
+
+      // Try GET /family/FamilyMembers (like FamilyTreeScreen)
+      Response? membersResponse;
+      try {
+        membersResponse = await dio.get('/family/FamilyMembers');
+      } catch (_) {
+        try {
+          membersResponse = await dio.post(
+            '/family/FamilyMembers',
+            data: {'familyId': familyId},
+          );
+        } catch (_) {
+          final familyResponse = await dio.post(
+            '/family/getFamily',
+            data: {'familyId': familyId},
+          );
+          if (familyResponse.statusCode == 200) {
+            final familyData = familyResponse.data['family'];
+            if (familyData != null && familyData['members'] != null) {
+              setState(() {
+                _familyMembers =
+                    (familyData['members'] as List)
+                        .map(
+                          (memberData) => FamilyMember(
+                            id:
+                                memberData['_id']?.toString() ??
+                                memberData['id']?.toString() ??
+                                DateTime.now().millisecondsSinceEpoch
+                                    .toString(),
+                            name:
+                                memberData['name']?.toString() ??
+                                'Unknown Member',
+                            role: memberData['role']?.toString() ?? 'member',
+                            gender: memberData['gender']?.toString() ?? '',
+                            avatar: memberData['avatar']?.toString() ?? '',
+                            birthday:
+                                memberData['birthday'] != null
+                                    ? DateTime.tryParse(
+                                      memberData['birthday'].toString(),
+                                    )
+                                    : null,
+                            interests:
+                                memberData['interests'] != null &&
+                                        memberData['interests'] is List
+                                    ? List<String>.from(memberData['interests'])
+                                    : <String>[],
+                          ),
+                        )
+                        .toList();
+              });
+              return;
+            }
+          }
+          return;
+        }
+      }
+      if (membersResponse.statusCode == 200) {
+        final responseData = membersResponse.data;
+        List<dynamic> membersData = [];
+        if (responseData['familyWithMembers'] != null) {
+          membersData = responseData['familyWithMembers']['members'] ?? [];
+        } else if (responseData['members'] != null) {
+          membersData = responseData['members'];
+        } else if (responseData is List) {
+          membersData = responseData;
+        }
+        setState(() {
+          _familyMembers =
+              membersData
+                  .map(
+                    (memberData) => FamilyMember(
+                      id:
+                          memberData['_id']?.toString() ??
+                          memberData['id']?.toString() ??
+                          DateTime.now().millisecondsSinceEpoch.toString(),
+                      name: memberData['name']?.toString() ?? 'Unknown Member',
+                      role: memberData['role']?.toString() ?? 'member',
+                      gender: memberData['gender']?.toString() ?? '',
+                      avatar: memberData['avatar']?.toString() ?? '',
+                      birthday:
+                          memberData['birthday'] != null
+                              ? DateTime.tryParse(
+                                memberData['birthday'].toString(),
+                              )
+                              : null,
+                      interests:
+                          memberData['interests'] != null &&
+                                  memberData['interests'] is List
+                              ? List<String>.from(memberData['interests'])
+                              : <String>[],
+                    ),
+                  )
+                  .toList();
+        });
+      }
+    } catch (e) {
+      // Optionally handle error
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocListener(
@@ -89,7 +221,7 @@ class HomeView extends StatelessWidget {
             const SizedBox(height: 24),
 
             // Add Members Section
-            _buildAddMembersSection(context, state),
+            _buildAddMembersSection(context),
             const SizedBox(height: 24), // Daily Message Section
             _buildDailyMessageSection(context, state),
             const SizedBox(height: 24),
@@ -354,7 +486,8 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildAddMembersSection(BuildContext context, HomeLoaded state) {
+  Widget _buildAddMembersSection(BuildContext context) {
+    final memberCount = _familyMembers.length;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -386,7 +519,7 @@ class HomeView extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Invite your family to join (${state.homeData.familyMembers.length} members)',
+                  'Invite your family to join ($memberCount ${memberCount == 1 ? 'member' : 'members'})',
                   style: const TextStyle(
                     fontSize: 14,
                     color: Color(0xFF64748B),
