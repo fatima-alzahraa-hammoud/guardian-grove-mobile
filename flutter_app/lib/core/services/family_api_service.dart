@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../constants/app_constants.dart';
 import '../services/storage_service.dart';
 import '../../data/models/family_model.dart';
+import '../../data/models/home_model.dart';
 
 class FamilyApiService {
   static final FamilyApiService _instance = FamilyApiService._internal();
@@ -59,62 +60,17 @@ class FamilyApiService {
 
       debugPrint('👨‍👩‍👧‍👦 FamilyApiService: Family ID: $familyId');
 
-      // Step 2: Try different endpoints to get family members
       List<dynamic> membersData = [];
 
-      // Method 1: POST to /family/FamilyMembers (what your backend expects)
+      // Method 1: Try GET /family/FamilyMembers?familyId=... (what backend expects)
       try {
-        debugPrint('🔄 FamilyApiService: Trying POST /family/FamilyMembers...');
-        final membersResponse = await _dio.post(
+        debugPrint(
+          '🔄 FamilyApiService: Trying GET /family/FamilyMembers?familyId=...',
+        );
+        final membersResponse = await _dio.get(
           '/family/FamilyMembers',
-          data: {'familyId': familyId},
+          queryParameters: {'familyId': familyId},
         );
-
-        if (membersResponse.statusCode == 200) {
-          debugPrint('✅ FamilyApiService: POST request successful');
-          final responseData = membersResponse.data;
-
-          // Handle different response structures
-          if (responseData['familyWithMembers'] != null) {
-            membersData = responseData['familyWithMembers']['members'] ?? [];
-          } else if (responseData['members'] != null) {
-            membersData = responseData['members'];
-          } else if (responseData is List) {
-            membersData = responseData;
-          }
-
-          if (membersData.isNotEmpty) {
-            return _processMembersData(membersData);
-          }
-        }
-      } catch (e) {
-        debugPrint('❌ FamilyApiService: POST /family/FamilyMembers failed: $e');
-      }
-
-      // Method 2: Fallback to /family/getFamily
-      try {
-        debugPrint('🔄 FamilyApiService: Trying getFamily fallback...');
-        final familyResponse = await _dio.post(
-          '/family/getFamily',
-          data: {'familyId': familyId},
-        );
-
-        if (familyResponse.statusCode == 200) {
-          final familyData = familyResponse.data['family'];
-          if (familyData != null && familyData['members'] != null) {
-            membersData = familyData['members'] as List;
-            debugPrint('✅ FamilyApiService: getFamily fallback successful');
-            return _processMembersData(membersData);
-          }
-        }
-      } catch (e) {
-        debugPrint('❌ FamilyApiService: getFamily fallback failed: $e');
-      }
-
-      // Method 3: Try GET /family/FamilyMembers (in case backend changes)
-      try {
-        debugPrint('🔄 FamilyApiService: Trying GET /family/FamilyMembers...');
-        final membersResponse = await _dio.get('/family/FamilyMembers');
 
         if (membersResponse.statusCode == 200) {
           final responseData = membersResponse.data;
@@ -134,10 +90,59 @@ class FamilyApiService {
         debugPrint('❌ FamilyApiService: GET /family/FamilyMembers failed: $e');
       }
 
-      debugPrint('❌ FamilyApiService: All methods failed');
+      // Method 2: POST to /family/FamilyMembers (fallback)
+      try {
+        debugPrint(
+          '🔄 FamilyApiService: Trying POST /family/FamilyMembers as fallback...',
+        );
+        final membersResponse = await _dio.post(
+          '/family/FamilyMembers',
+          data: {'familyId': familyId},
+        );
+
+        if (membersResponse.statusCode == 200) {
+          debugPrint('✅ FamilyApiService: POST request successful');
+          final responseData = membersResponse.data;
+
+          if (responseData['familyWithMembers'] != null) {
+            membersData = responseData['familyWithMembers']['members'] ?? [];
+          } else if (responseData['members'] != null) {
+            membersData = responseData['members'];
+          } else if (responseData is List) {
+            membersData = responseData;
+          }
+
+          if (membersData.isNotEmpty) {
+            return _processMembersData(membersData);
+          }
+        }
+      } catch (e) {
+        debugPrint('❌ FamilyApiService: POST /family/FamilyMembers failed: $e');
+      }
+
+      // Method 3: Fallback to /family/getFamily
+      try {
+        debugPrint('🔄 FamilyApiService: Trying getFamily fallback...');
+        final familyResponse = await _dio.post(
+          '/family/getFamily',
+          data: {'familyId': familyId},
+        );
+
+        if (familyResponse.statusCode == 200) {
+          final familyData = familyResponse.data['family'];
+          if (familyData != null && familyData['members'] != null) {
+            membersData = familyData['members'] as List;
+            debugPrint('✅ FamilyApiService: getFamily fallback successful');
+            return _processMembersData(membersData);
+          }
+        }
+      } catch (e) {
+        debugPrint('❌ FamilyApiService: getFamily fallback failed: $e');
+      }
+
       return [];
     } catch (e) {
-      debugPrint('❌ FamilyApiService: Critical error: $e');
+      debugPrint('❌ FamilyApiService: Unexpected error: $e');
       return [];
     }
   }
@@ -260,5 +265,69 @@ class FamilyApiService {
       );
     }
     return members;
+  }
+
+  // Unified method: Fetch complete family data (user, family, members, stats)
+  Future<HomeData> getFamilyCompleteData() async {
+    try {
+      debugPrint('🔍 [getFamilyCompleteData] Fetching user info...');
+      final userResponse = await _dio.get('/users/user');
+      final userData = userResponse.data['user'] ?? userResponse.data;
+      final familyId = userData['familyId'];
+      if (familyId == null) throw Exception('No familyId found');
+
+      debugPrint('🔍 [getFamilyCompleteData] Fetching family info...');
+      final familyResponse = await _dio.post(
+        '/family/getFamily',
+        data: {'familyId': familyId},
+      );
+      final familyData = familyResponse.data['family'];
+      if (familyData == null) throw Exception('No family data found');
+
+      debugPrint('🔍 [getFamilyCompleteData] Fetching family members...');
+      final membersResponse = await _dio.post(
+        '/family/FamilyMembers',
+        data: {'familyId': familyId},
+      );
+      List<dynamic> membersData = [];
+      if (membersResponse.statusCode == 200) {
+        final responseData = membersResponse.data;
+        if (responseData['familyWithMembers'] != null) {
+          membersData = responseData['familyWithMembers']['members'] ?? [];
+        } else if (responseData['members'] != null) {
+          membersData = responseData['members'];
+        } else if (responseData is List) {
+          membersData = responseData;
+        }
+      }
+      // Fallback to familyData['members'] if needed
+      if (membersData.isEmpty && familyData['members'] != null) {
+        membersData = familyData['members'] as List;
+      }
+
+      debugPrint('📦 [getFamilyCompleteData] Parsing HomeData...');
+      return HomeData.fromJson({
+        '_id': familyData['_id'],
+        'user': userData,
+        'family_stats': {
+          'totalStars': familyData['totalStars'] ?? 0,
+          'tasks': familyData['totalTasks'] ?? 0,
+          'stars': familyData['stars'] ?? {},
+          'taskCounts': familyData['taskCounts'] ?? {},
+        },
+        'familyName': familyData['familyName'] ?? '',
+        'familyAvatar': familyData['familyAvatar'] ?? '',
+        'members': membersData,
+        'email': familyData['email'] ?? '',
+        'createdAt': familyData['createdAt'] ?? '',
+        'notifications': familyData['notifications'] ?? [],
+        'goals': familyData['goals'] ?? [],
+        'achievements': familyData['achievements'] ?? [],
+        'sharedStories': familyData['sharedStories'] ?? [],
+      });
+    } catch (e) {
+      debugPrint('❌ [getFamilyCompleteData] Failed: $e');
+      rethrow;
+    }
   }
 }

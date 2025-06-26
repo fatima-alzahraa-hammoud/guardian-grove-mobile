@@ -44,6 +44,8 @@ class FamilyMember extends Equatable {
   final String avatar;
   final DateTime? birthday; // Optional, not always present in backend
   final List<String> interests;
+  final int coins; // NEW: per-member coins
+  final int rankInFamily; // NEW: per-member rank
 
   const FamilyMember({
     required this.id,
@@ -53,6 +55,8 @@ class FamilyMember extends Equatable {
     required this.avatar,
     this.birthday,
     this.interests = const [],
+    this.coins = 0,
+    this.rankInFamily = 0,
   });
 
   factory FamilyMember.fromJson(Map<String, dynamic> json) {
@@ -70,6 +74,8 @@ class FamilyMember extends Equatable {
           (json['interests'] as List<dynamic>? ?? [])
               .map((e) => e.toString())
               .toList(),
+      coins: json['coins'] ?? 0,
+      rankInFamily: json['rankInFamily'] ?? 0,
     );
   }
 
@@ -81,6 +87,8 @@ class FamilyMember extends Equatable {
     'avatar': avatar,
     if (birthday != null) 'birthday': birthday!.toIso8601String(),
     'interests': interests,
+    'coins': coins,
+    'rankInFamily': rankInFamily,
   };
 
   @override
@@ -92,5 +100,7 @@ class FamilyMember extends Equatable {
     avatar,
     birthday,
     interests,
+    coins,
+    rankInFamily,
   ];
 }

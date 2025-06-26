@@ -179,47 +179,46 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
 
       debugPrint('👨‍👩‍👧‍👦 Using family ID: $familyId');
 
-      // Step 2: Make POST request to get family members (as backend expects)
       Response? membersResponse;
+      List<dynamic> membersData = [];
 
+      // Method 1: Try GET /family/FamilyMembers?familyId=... (what backend expects)
       try {
-        debugPrint('🔄 Making POST request to /family/FamilyMembers...');
+        debugPrint(
+          '🔄 Making GET request to /family/FamilyMembers?familyId=...',
+        );
+        membersResponse = await apiClient.dio.get(
+          '/family/FamilyMembers',
+          queryParameters: {'familyId': familyId},
+        );
+        debugPrint('✅ GET request successful');
+        final responseData = membersResponse.data;
+
+        if (responseData['members'] != null) {
+          membersData = responseData['members'];
+        } else if (responseData is List) {
+          membersData = responseData;
+        }
+
+        if (membersData.isNotEmpty) {
+          return membersData.map((e) => fam.FamilyMember.fromJson(e)).toList();
+        }
+      } catch (e) {
+        debugPrint('❌ GET request failed: $e');
+      }
+
+      // Method 2: POST to /family/FamilyMembers (fallback)
+      try {
+        debugPrint(
+          '🔄 Making POST request to /family/FamilyMembers as fallback...',
+        );
         membersResponse = await apiClient.dio.post(
           '/family/FamilyMembers',
           data: {'familyId': familyId},
         );
         debugPrint('✅ POST request successful');
-      } catch (e) {
-        debugPrint('❌ POST request failed: $e');
-
-        // Fallback to getFamily
-        try {
-          debugPrint('🔄 Trying getFamily fallback...');
-          final familyResponse = await apiClient.dio.post(
-            '/family/getFamily',
-            data: {'familyId': familyId},
-          );
-
-          if (familyResponse.statusCode == 200) {
-            final familyData = familyResponse.data['family'];
-            if (familyData != null && familyData['members'] != null) {
-              return _processMembersData(familyData['members'] as List);
-            }
-          }
-          return [];
-        } catch (e2) {
-          debugPrint('❌ Fallback also failed: $e2');
-          return [];
-        }
-      }
-
-      if (membersResponse.statusCode == 200) {
         final responseData = membersResponse.data;
-        debugPrint('📄 Members response received');
 
-        List<dynamic> membersData = [];
-
-        // Handle different response structures
         if (responseData['familyWithMembers'] != null) {
           membersData = responseData['familyWithMembers']['members'] ?? [];
         } else if (responseData['members'] != null) {
@@ -228,57 +227,39 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
           membersData = responseData;
         }
 
-        return _processMembersData(membersData);
-      } else {
-        debugPrint(
-          '❌ Failed to fetch family members: {membersResponse.statusCode}',
-        );
-        return [];
+        if (membersData.isNotEmpty) {
+          return membersData.map((e) => fam.FamilyMember.fromJson(e)).toList();
+        }
+      } catch (e) {
+        debugPrint('❌ POST request failed: $e');
       }
+
+      // Fallback to getFamily
+      try {
+        debugPrint('🔄 Trying getFamily fallback...');
+        final familyResponse = await apiClient.dio.post(
+          '/family/getFamily',
+          data: {'familyId': familyId},
+        );
+        if (familyResponse.statusCode == 200) {
+          final familyData = familyResponse.data['family'];
+          if (familyData != null && familyData['members'] != null) {
+            membersData = familyData['members'] as List;
+            debugPrint('✅ getFamily fallback successful');
+            return membersData
+                .map((e) => fam.FamilyMember.fromJson(e))
+                .toList();
+          }
+        }
+      } catch (e) {
+        debugPrint('❌ getFamily fallback failed: $e');
+      }
+
+      return [];
     } catch (e) {
-      debugPrint('❌ Error fetching family members: $e');
+      debugPrint('❌ Unexpected error: $e');
       return [];
     }
-  }
-
-  // Helper method to process members data
-  List<fam.FamilyMember> _processMembersData(List<dynamic> membersData) {
-    debugPrint('🔄 Processing {membersData.length} members');
-
-    return membersData.map((memberData) {
-      final memberName = memberData['name']?.toString() ?? 'Unknown';
-      debugPrint('👤 Processing member: $memberName');
-
-      // Debug missing data
-      final avatar = memberData['avatar']?.toString() ?? '';
-      final gender = memberData['gender']?.toString() ?? '';
-
-      if (avatar.isEmpty) {
-        debugPrint('⚠️ Missing avatar for: $memberName');
-      }
-      if (gender.isEmpty) {
-        debugPrint('⚠️ Missing gender for: $memberName');
-      }
-
-      return fam.FamilyMember(
-        id:
-            memberData['_id']?.toString() ??
-            memberData['id']?.toString() ??
-            DateTime.now().millisecondsSinceEpoch.toString(),
-        name: memberName,
-        role: memberData['role']?.toString() ?? 'member',
-        gender: gender,
-        avatar: avatar,
-        birthday:
-            memberData['birthday'] != null
-                ? DateTime.tryParse(memberData['birthday'].toString())
-                : null,
-        interests:
-            memberData['interests'] != null && memberData['interests'] is List
-                ? List<String>.from(memberData['interests'])
-                : <String>[],
-      );
-    }).toList();
   }
 
   /// Convert backend user and family data to HomeData model
@@ -341,12 +322,14 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
                   memberData['id']?.toString() ??
                   '',
               name:
-                  '${memberData['firstName']?.toString() ?? memberData['first_name']?.toString() ?? 'Member'} ${memberData['lastName']?.toString() ?? memberData['last_name']?.toString() ?? ''}',
+                  '${memberData['firstName']?.toString() ?? memberData['first_name']?.toString() ?? memberData['name']?.toString() ?? 'Member'} ${memberData['lastName']?.toString() ?? memberData['last_name']?.toString() ?? ''}'
+                      .trim(),
               role: memberData['role']?.toString() ?? 'member',
               gender: memberData['gender']?.toString() ?? '',
               avatar: memberData['avatar']?.toString() ?? '',
               birthday:
-                  memberData['birthday'] != null
+                  memberData['birthday'] != null &&
+                          memberData['birthday'].toString().isNotEmpty
                       ? DateTime.tryParse(memberData['birthday'].toString())
                       : null,
               interests:
@@ -354,6 +337,8 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
                           memberData['interests'] is List
                       ? List<String>.from(memberData['interests'])
                       : <String>[],
+              coins: memberData['coins'] ?? 0,
+              rankInFamily: memberData['rankInFamily'] ?? 0,
             );
           }).toList();
 
