@@ -936,44 +936,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       color: Color(0xFF1A202C),
                     ),
                   ),
-                  // Add Members button
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) =>
-                                  const AddMemberScreen(fromProfile: true),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0EA5E9),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.add, color: Colors.white, size: 16),
-                          SizedBox(width: 4),
-                          Text(
-                            'Add Members',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
+                  if (!(currentUser?.role.toLowerCase().contains('child') ==
+                          true ||
+                      currentUser?.role.toLowerCase().contains('son') == true ||
+                      currentUser?.role.toLowerCase().contains('daughter') ==
+                          true))
+                    // Add Members button
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) =>
+                                    const AddMemberScreen(fromProfile: true),
                           ),
-                        ],
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0EA5E9),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.add, color: Colors.white, size: 16),
+                            SizedBox(width: 4),
+                            Text(
+                              'Add Members',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
               const SizedBox(height: 16),

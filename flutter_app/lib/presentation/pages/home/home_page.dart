@@ -231,6 +231,11 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Widget _buildHomeContent(BuildContext context, HomeLoaded state) {
+    final currentUser = StorageService.getUser();
+    final isChild =
+        currentUser?.role.toLowerCase().contains('child') == true ||
+        currentUser?.role.toLowerCase().contains('son') == true ||
+        currentUser?.role.toLowerCase().contains('daughter') == true;
     return RefreshIndicator(
       onRefresh: () async {
         context.read<HomeBloc>().add(RefreshHomeData());
@@ -247,8 +252,8 @@ class _HomeViewState extends State<HomeView> {
             const SizedBox(height: 24),
 
             // Add Members Section
-            _buildAddMembersSection(context),
-            const SizedBox(height: 24), // Daily Message Section
+            if (!isChild) _buildAddMembersSection(context),
+            if (!isChild) const SizedBox(height: 24), // Daily Message Section
             _buildDailyMessageSection(context, state),
             const SizedBox(height: 24),
 
@@ -278,8 +283,8 @@ class _HomeViewState extends State<HomeView> {
             const SizedBox(height: 24),
 
             // Track your Child Section
-            _buildTrackChildSection(context),
-            const SizedBox(height: 24),
+            if (!isChild) _buildTrackChildSection(context),
+            if (!isChild) const SizedBox(height: 24),
 
             // Progress Section
             _buildProgressSection(context, state),

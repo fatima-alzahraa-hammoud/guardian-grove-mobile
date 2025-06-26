@@ -157,20 +157,28 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               );
             } else if (state is AuthAuthenticated) {
-              debugPrint('✅ Login successful, navigating to main app');
+              debugPrint('✅ Login successful, checking password requirements');
 
-              // Check if password change is required
-              if (state.requiresPasswordChange) {
-                debugPrint('🔑 Password change required, showing dialog');
+              // Check if password change is required (based on isTempPassword)
+              if (state.requiresPasswordChange || state.user.isTempPassword) {
+                debugPrint(
+                  '🔑 Temporary password detected, showing change dialog',
+                );
 
-                // Show password change dialog
+                // Show password change dialog - user MUST change password
                 showDialog(
                   context: context,
-                  barrierDismissible: false, // User must change password
-                  builder: (context) => PasswordChangeDialog(user: state.user),
+                  barrierDismissible:
+                      false, // Cannot dismiss - must change password
+                  builder:
+                      (context) => PasswordChangeDialog(
+                        user: state.user,
+                        isRequired: true, // Mark as required
+                      ),
                 );
               } else {
-                // Show success message and navigate normally
+                // Normal login flow - go to main app
+                debugPrint('✅ Normal login, proceeding to main app');
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: const Row(
