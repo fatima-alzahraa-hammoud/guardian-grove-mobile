@@ -48,22 +48,22 @@ class ChatRepository {
     try {
       // Mock chat creation for testing
       // TODO: Uncomment below when backend is ready
-      // _getAuthToken(); // Verify token exists
-      // final response = await _apiClient.post(
-      //   '/chats/createChat',
-      //   data: {'title': title},
-      // );
-      // return Chat.fromJson(response.data['chat']);
+      _getAuthToken(); // Verify token exists
+      final response = await _apiClient.post(
+        '/chats/createChat',
+        data: {'title': title},
+      );
+      return Chat.fromJson(response.data['chat']);
 
       // Mock response - create a new chat
-      return Chat(
-        id: 'chat_${DateTime.now().millisecondsSinceEpoch}',
-        userId: 'user123',
-        title: title,
-        messages: [],
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
+      // return Chat(
+      //   id: 'chat_${DateTime.now().millisecondsSinceEpoch}',
+      //   userId: 'user123',
+      //   title: title,
+      //   messages: [],
+      //   createdAt: DateTime.now(),
+      //   updatedAt: DateTime.now(),
+      // );
     } catch (e) {
       throw Exception('Error creating chat: ${e.toString()}');
     }
@@ -74,25 +74,24 @@ class ChatRepository {
     required String message,
   }) async {
     try {
-      // Mock response for testing (since AI API key is paused)
-      // TODO: Uncomment below when backend is ready and AI key is active
-      // _getAuthToken(); // Verify token exists
-      // final response = await _apiClient.post(
-      //   '/chats/sendMessage',
-      //   data: {'chatId': chatId, 'message': message},
-      // );
-      // return response.data['response'] ?? 'Sorry, I couldn\'t process that request.';
+      //Mock response for testing (since AI API key is paused)
+      //TODO: Uncomment below when backend is ready and AI key is active
+      _getAuthToken(); // Verify token exists
+      final response = await _apiClient.post(
+        '/chats/sendMessage',
+        data: {'chatId': chatId, 'message': message},
+      );
+      return response.data['response'] ?? 'Sorry, I couldn\'t process that request.';
 
       // Mock response for testing
-      await Future.delayed(const Duration(seconds: 1)); // Simulate API delay
-
-      if (message.toLowerCase().contains('hello')) {
-        return 'Hello! 👋 I\'m your family helper. How can I assist you today?';
-      } else if (message.toLowerCase().contains('help')) {
-        return 'I\'m here to help! I can assist with homework, creative activities, recipes, and much more. What would you like to explore?';
-      } else {
-        return 'That\'s interesting! I\'d love to help you with that. Currently, my AI features are being updated, but I\'ll be back with full capabilities soon! 🚀';
-      }
+      // await Future.delayed(const Duration(seconds: 1)); // Simulate API delay
+      // if (message.toLowerCase().contains('hello')) {
+      //   return 'Hello! 👋 I\'m your family helper. How can I assist you today?';
+      // } else if (message.toLowerCase().contains('help')) {
+      //   return 'I\'m here to help! I can assist with homework, creative activities, recipes, and much more. What would you like to explore?';
+      // } else {
+      //   return 'That\'s interesting! I\'d love to help you with that. Currently, my AI features are being updated, but I\'ll be back with full capabilities soon! 🚀';
+      // }
     } catch (e) {
       throw Exception('Error sending message: ${e.toString()}');
     }

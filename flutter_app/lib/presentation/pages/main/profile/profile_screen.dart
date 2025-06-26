@@ -43,7 +43,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return '${date.day}/${date.month}/${date.year}';
   }
 
-  int _calculateAge(DateTime birthday) {
+  int _calculateAge(DateTime? birthday) {
+    if (birthday == null) return 0; // Return 0 if birthday is null
     final today = DateTime.now();
     int age = today.year - birthday.year;
     if (today.month < birthday.month ||
@@ -129,7 +130,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               border: Border.all(color: const Color(0xFFE2E8F0)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
+                  color: Colors.black.withAlpha((0.04 * 255).toInt()),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -155,8 +156,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return _buildLoadingCard();
     }
 
-    // Use new FamilyMember model fields if available (for consistency)
     String avatarPath = currentUser!.avatar;
+    int age = _calculateAge(currentUser!.birthday);
+    String fixedAvatar = avatarPath;
+    if (fixedAvatar.startsWith('/assets/')) {
+      fixedAvatar = fixedAvatar.substring(1);
+    }
+    Widget buildAvatar() {
+      if (fixedAvatar.isNotEmpty) {
+        if ((fixedAvatar.endsWith('.png') ||
+                fixedAvatar.endsWith('.jpg') ||
+                fixedAvatar.endsWith('.jpeg')) &&
+            fixedAvatar.startsWith('assets/')) {
+          return ClipOval(
+            child: Image.asset(
+              fixedAvatar,
+              width: 80,
+              height: 80,
+              fit: BoxFit.cover,
+              errorBuilder:
+                  (context, error, stackTrace) => _buildFallbackUserAvatar(),
+            ),
+          );
+        } else if (fixedAvatar.startsWith('http') ||
+            fixedAvatar.startsWith('https')) {
+          return ClipOval(
+            child: Image.network(
+              avatarPath,
+              width: 80,
+              height: 80,
+              fit: BoxFit.cover,
+              errorBuilder:
+                  (context, error, stackTrace) => _buildFallbackUserAvatar(),
+            ),
+          );
+        }
+      }
+      return _buildFallbackUserAvatar();
+    }
 
     return Container(
       width: double.infinity,
@@ -167,12 +204,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: Colors.black.withAlpha((0.08 * 255).toInt()),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withAlpha((0.04 * 255).toInt()),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -193,13 +230,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       shape: BoxShape.circle,
                       gradient: LinearGradient(
                         colors: [
-                          const Color(0xFF0EA5E9).withValues(alpha: 0.2),
-                          const Color(0xFF0284C7).withValues(alpha: 0.1),
+                          const Color(
+                            0xFF0EA5E9,
+                          ).withAlpha((0.2 * 255).toInt()),
+                          const Color(
+                            0xFF0284C7,
+                          ).withAlpha((0.1 * 255).toInt()),
                         ],
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF0EA5E9).withValues(alpha: 0.4),
+                          color: const Color(
+                            0xFF0EA5E9,
+                          ).withAlpha((0.4 * 255).toInt()),
                           blurRadius: 20,
                           offset: const Offset(0, 8),
                         ),
@@ -217,34 +260,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       shape: BoxShape.circle,
                     ),
-                    child: Center(
-                      child:
-                          avatarPath.isNotEmpty
-                              ? (avatarPath.startsWith('assets/')
-                                  ? ClipOval(
-                                    child: Image.asset(
-                                      avatarPath,
-                                      width: 80,
-                                      height: 80,
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) =>
-                                              _buildFallbackUserAvatar(),
-                                    ),
-                                  )
-                                  : ClipOval(
-                                    child: Image.network(
-                                      avatarPath,
-                                      width: 80,
-                                      height: 80,
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) =>
-                                              _buildFallbackUserAvatar(),
-                                    ),
-                                  ))
-                              : _buildFallbackUserAvatar(),
-                    ),
+                    child: Center(child: buildAvatar()),
                   ),
                 ],
               ),
@@ -275,13 +291,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            const Color(0xFF0EA5E9).withValues(alpha: 0.1),
-                            const Color(0xFF0284C7).withValues(alpha: 0.05),
+                            const Color(
+                              0xFF0EA5E9,
+                            ).withAlpha((0.1 * 255).toInt()),
+                            const Color(
+                              0xFF0284C7,
+                            ).withAlpha((0.05 * 255).toInt()),
                           ],
                         ),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: const Color(0xFF0EA5E9).withValues(alpha: 0.2),
+                          color: const Color(
+                            0xFF0EA5E9,
+                          ).withAlpha((0.2 * 255).toInt()),
                         ),
                       ),
                       child: Row(
@@ -293,7 +315,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            '${currentUser!.role} • ${_calculateAge(currentUser!.birthday)} years',
+                            '${currentUser!.role} • $age yrs',
                             style: const TextStyle(
                               fontSize: 14,
                               color: Color(0xFF0EA5E9),
@@ -315,14 +337,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               gradient: LinearGradient(
                 colors: [
                   const Color(0xFFF8F9FE),
-                  Colors.white.withValues(alpha: 0.5),
+                  Colors.white.withAlpha((0.5 * 255).toInt()),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: const Color(0xFFE2E8F0).withValues(alpha: 0.5),
+                color: const Color(0xFFE2E8F0).withAlpha((0.5 * 255).toInt()),
               ),
             ),
             child: Column(
@@ -400,12 +422,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             borderRadius: BorderRadius.circular(28),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF10B981).withValues(alpha: 0.4),
+                color: const Color(0xFF10B981).withAlpha((0.4 * 255).toInt()),
                 blurRadius: 24,
                 offset: const Offset(0, 12),
               ),
               BoxShadow(
-                color: const Color(0xFF10B981).withValues(alpha: 0.2),
+                color: const Color(0xFF10B981).withAlpha((0.2 * 255).toInt()),
                 blurRadius: 40,
                 offset: const Offset(0, 20),
               ),
@@ -418,14 +440,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
+                  color: Colors.white.withAlpha((0.15 * 255).toInt()),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.2),
+                    color: Colors.white.withAlpha((0.2 * 255).toInt()),
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
+                      color: Colors.black.withAlpha((0.1 * 255).toInt()),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -443,7 +465,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.white.withValues(alpha: 0.3),
+                                color: Colors.white.withAlpha(
+                                  (0.3 * 255).toInt(),
+                                ),
                                 blurRadius: 15,
                                 offset: const Offset(0, 4),
                               ),
@@ -454,10 +478,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           width: 70,
                           height: 70,
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
+                            color: Colors.white.withAlpha((0.2 * 255).toInt()),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.3),
+                              color: Colors.white.withAlpha(
+                                (0.3 * 255).toInt(),
+                              ),
                               width: 2,
                             ),
                           ),
@@ -522,10 +548,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
+                              color: Colors.white.withAlpha(
+                                (0.2 * 255).toInt(),
+                              ),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.3),
+                                color: Colors.white.withAlpha(
+                                  (0.3 * 255).toInt(),
+                                ),
                               ),
                             ),
                             child: Row(
@@ -534,14 +564,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 Icon(
                                   Icons.group_rounded,
                                   size: 16,
-                                  color: Colors.white.withValues(alpha: 0.9),
+                                  color: Colors.white.withAlpha(
+                                    (0.9 * 255).toInt(),
+                                  ),
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
                                   '${familyMembers.length} ${familyMembers.length == 1 ? 'member' : 'members'}',
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: Colors.white.withValues(alpha: 0.95),
+                                    color: Colors.white.withAlpha(
+                                      (0.95 * 255).toInt(),
+                                    ),
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -565,14 +599,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.15),
+                        color: Colors.white.withAlpha((0.15 * 255).toInt()),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.25),
+                          color: Colors.white.withAlpha((0.25 * 255).toInt()),
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.white.withValues(alpha: 0.3),
+                            color: Colors.white.withAlpha((0.3 * 255).toInt()),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -584,11 +618,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             width: 50,
                             height: 50,
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.25),
+                              color: Colors.white.withAlpha(
+                                (0.25 * 255).toInt(),
+                              ),
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.white.withValues(alpha: 0.3),
+                                  color: Colors.white.withAlpha(
+                                    (0.3 * 255).toInt(),
+                                  ),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),
@@ -615,7 +653,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             'Total Stars',
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.white.withValues(alpha: 0.9),
+                              color: Colors.white.withAlpha(
+                                (0.9 * 255).toInt(),
+                              ),
                               fontWeight: FontWeight.w600,
                             ),
                             textAlign: TextAlign.center,
@@ -632,14 +672,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.15),
+                        color: Colors.white.withAlpha((0.15 * 255).toInt()),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.25),
+                          color: Colors.white.withAlpha((0.25 * 255).toInt()),
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.white.withValues(alpha: 0.3),
+                            color: Colors.white.withAlpha((0.3 * 255).toInt()),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -651,11 +691,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             width: 50,
                             height: 50,
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.25),
+                              color: Colors.white.withAlpha(
+                                (0.25 * 255).toInt(),
+                              ),
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.white.withValues(alpha: 0.3),
+                                  color: Colors.white.withAlpha(
+                                    (0.3 * 255).toInt(),
+                                  ),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),
@@ -682,7 +726,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             'Total Tasks',
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.white.withValues(alpha: 0.9),
+                              color: Colors.white.withAlpha(
+                                (0.9 * 255).toInt(),
+                              ),
                               fontWeight: FontWeight.w600,
                             ),
                             textAlign: TextAlign.center,
@@ -701,10 +747,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
+                  color: Colors.white.withAlpha((0.1 * 255).toInt()),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.2),
+                    color: Colors.white.withAlpha((0.2 * 255).toInt()),
                   ),
                 ),
                 child: Row(
@@ -712,7 +758,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     Icon(
                       Icons.trending_up_rounded,
-                      color: Colors.white.withValues(alpha: 0.9),
+                      color: Colors.white.withAlpha((0.9 * 255).toInt()),
                       size: 20,
                     ),
                     const SizedBox(width: 10),
@@ -720,7 +766,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       'Keep up the amazing work! 🌟',
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.white.withValues(alpha: 0.95),
+                        color: Colors.white.withAlpha((0.95 * 255).toInt()),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -753,8 +799,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.white.withValues(alpha: 0.3),
-            Colors.white.withValues(alpha: 0.1),
+            Colors.white.withAlpha((0.3 * 255).toInt()),
+            Colors.white.withAlpha((0.1 * 255).toInt()),
           ],
         ),
         borderRadius: BorderRadius.circular(18),
@@ -794,7 +840,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: 0.1),
+            color: color.withAlpha((0.1 * 255).toInt()),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -806,7 +852,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withAlpha((0.1 * 255).toInt()),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, size: 20, color: color),
@@ -870,7 +916,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             border: Border.all(color: const Color(0xFFE2E8F0)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
+                color: Colors.black.withAlpha((0.04 * 255).toInt()),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -984,7 +1030,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               BoxShadow(
                                 color: _getMemberGradient(
                                   member.role,
-                                ).colors.first.withValues(alpha: 0.3),
+                                ).colors.first.withAlpha((0.3 * 255).toInt()),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),
@@ -1119,7 +1165,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: Colors.black.withAlpha((0.1 * 255).toInt()),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   ),
@@ -1139,7 +1185,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         BoxShadow(
                           color: _getMemberGradient(
                             member.role,
-                          ).colors.first.withValues(alpha: 0.3),
+                          ).colors.first.withAlpha((0.3 * 255).toInt()),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -1324,7 +1370,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withAlpha((0.04 * 255).toInt()),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -1346,7 +1392,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         border: Border.all(color: const Color(0xFFEF4444), width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withAlpha((0.04 * 255).toInt()),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

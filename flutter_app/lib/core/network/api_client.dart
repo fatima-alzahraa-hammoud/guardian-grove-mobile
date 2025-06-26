@@ -171,6 +171,135 @@ class ApiClient {
     debugPrint('❌ No working backend URL found');
     return null;
   }
+
+  // FIXED: Fetch family members with proper POST request
+  Future<List<dynamic>> fetchFamilyMembersWithFallback() async {
+    try {
+      debugPrint('🔍 Fetching family members...');
+      // Step 1: Get user info first to get familyId
+      final userResponse = await _dio.get('/users/user');
+      if (userResponse.statusCode != 200) {
+        throw Exception('Failed to get user info');
+      }
+      final userData = userResponse.data['user'] ?? userResponse.data;
+      final familyId = userData['familyId'];
+      if (familyId == null) {
+        throw Exception('No family ID found');
+      }
+      debugPrint('👨‍👩‍👧‍👦 Family ID: $familyId');
+      // Step 2: Make POST request to /family/FamilyMembers with familyId (as your backend expects)
+      Response? membersResponse;
+      try {
+        debugPrint('🔄 Making POST request to /family/FamilyMembers...');
+        membersResponse = await _dio.post(
+          '/family/FamilyMembers',
+          data: {'familyId': familyId},
+        );
+        debugPrint('✅ POST request successful');
+      } catch (e) {
+        debugPrint('❌ POST /family/FamilyMembers failed: $e');
+        // Fallback: Try getFamily endpoint
+        try {
+          debugPrint('🔄 Trying getFamily fallback...');
+          final familyResponse = await _dio.post(
+            '/family/getFamily',
+            data: {'familyId': familyId},
+          );
+          if (familyResponse.statusCode == 200) {
+            final familyData = familyResponse.data['family'];
+            if (familyData != null && familyData['members'] != null) {
+              final members = familyData['members'] as List;
+              debugPrint('👥 Found ${members.length} members in fallback');
+              // Debug each member
+              for (final member in members) {
+                _debugMemberData(member);
+              }
+              return members;
+            }
+          }
+          throw Exception('Fallback also failed');
+        } catch (e2) {
+          debugPrint('❌ Fallback also failed: $e2');
+          throw Exception('All methods failed to fetch family members: $e2');
+        }
+      }
+      // Process successful response
+      if (membersResponse.statusCode == 200) {
+        final responseData = membersResponse.data;
+        debugPrint('📄 Members response: ${responseData.toString()}');
+        List<dynamic> membersData = [];
+        // Handle different response structures
+        if (responseData['familyWithMembers'] != null) {
+          membersData = responseData['familyWithMembers']['members'] ?? [];
+        } else if (responseData['members'] != null) {
+          membersData = responseData['members'];
+        } else if (responseData is List) {
+          membersData = responseData;
+        } else {
+          throw Exception(
+            'Unexpected response structure: ${responseData.keys}',
+          );
+        }
+        debugPrint('👥 Found ${membersData.length} members in response');
+        // Debug each member
+        for (final member in membersData) {
+          _debugMemberData(member);
+        }
+        return membersData;
+      } else {
+        throw Exception(
+          'Failed to fetch family members: ${membersResponse.statusCode}',
+        );
+      }
+    } catch (e) {
+      debugPrint('❌ Error fetching family members: $e');
+      rethrow;
+    }
+  }
+
+  // Helper method to debug member data
+  void _debugMemberData(Map<String, dynamic> member) {
+    final name = member['name']?.toString() ?? 'Unknown Member';
+    final avatar = member['avatar']?.toString() ?? '';
+    final gender = member['gender']?.toString() ?? '';
+    final role = member['role']?.toString() ?? '';
+    debugPrint('👤 Member: $name');
+    debugPrint('   Role: $role');
+    debugPrint(
+      '   Avatar: [1m${avatar.isEmpty ? '[274c MISSING' : '[2705 $avatar'}[0m',
+    );
+    debugPrint(
+      '   Gender: [1m${gender.isEmpty ? '[274c MISSING' : '[2705 $gender'}[0m',
+    );
+    debugPrint('   ---');
+  }
+
+  // Additional method to get family info
+  Future<Map<String, dynamic>> getFamilyInfo() async {
+    try {
+      debugPrint('🔍 Fetching family info...');
+      // Get user info first
+      final userResponse = await _dio.get('/users/user');
+      final userData = userResponse.data['user'] ?? userResponse.data;
+      final familyId = userData['familyId'];
+      if (familyId == null) {
+        throw Exception('No family ID found');
+      }
+      // Get family details
+      final familyResponse = await _dio.post(
+        '/family/getFamily',
+        data: {'familyId': familyId},
+      );
+      if (familyResponse.statusCode == 200) {
+        return familyResponse.data['family'] ?? {};
+      } else {
+        throw Exception('Failed to get family info');
+      }
+    } catch (e) {
+      debugPrint('❌ Error fetching family info: $e');
+      rethrow;
+    }
+  }
 }
 
 // Auth Interceptor to add token to requests

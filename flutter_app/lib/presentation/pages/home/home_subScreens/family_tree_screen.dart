@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/data/models/family_model.dart' show FamilyMember;
-import 'package:flutter_app/core/services/storage_service.dart';
-import 'package:flutter_app/core/constants/app_constants.dart';
-import 'package:dio/dio.dart';
+import 'package:flutter_app/core/services/family_api_service.dart';
+import 'package:flutter_app/data/models/family_member_circle.dart';
 
 class FamilyTreeScreen extends StatefulWidget {
   final bool collapsed;
@@ -16,160 +15,41 @@ class _FamilyTreeScreenState extends State<FamilyTreeScreen> {
   List<FamilyMember> _familyMembers = [];
   bool _isLoading = true;
   String? _error;
-  final Dio _dio = Dio();
 
   @override
   void initState() {
     super.initState();
-    _setupDio();
     _fetchFamilyMembers();
   }
 
-  void _setupDio() {
-    final token = StorageService.getToken();
-    if (token != null) {
-      _dio.options.headers['Authorization'] = 'Bearer $token';
-    }
-    _dio.options.baseUrl =
-        AppConstants.baseUrl; // Use canonical backend base URL
-    _dio.options.connectTimeout = const Duration(seconds: 10);
-    _dio.options.receiveTimeout = const Duration(seconds: 10);
-  }
-
   Future<void> _fetchFamilyMembers() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    debugPrint(
+      '🔍 Fetching family members for family tree (via FamilyApiService)...',
+    );
     try {
+      final members = await FamilyApiService.fetchFamilyMembersWithDebug();
       setState(() {
-        _isLoading = true;
-        _error = null;
+        _familyMembers = members;
+        _isLoading = false;
       });
-
-      debugPrint('🔍 Fetching family members...');
-
-      // First get current user to get familyId
-      final userResponse = await _dio.get('/users/user');
-
-      if (userResponse.statusCode != 200) {
-        throw Exception('Failed to get user info');
-      }
-
-      final userData = userResponse.data['user'] ?? userResponse.data;
-      final familyId = userData['familyId'];
-
-      if (familyId == null) {
-        throw Exception('No family ID found');
-      }
-
-      debugPrint('👨‍👩‍👧‍👦 Family ID: $familyId');
-
-      // Method 1: Try GET request first
-      Response? membersResponse;
-      try {
-        membersResponse = await _dio.get('/family/FamilyMembers');
-        debugPrint('✅ GET request successful');
-      } catch (e) {
-        debugPrint('❌ GET request failed, trying POST...');
-
-        // Method 2: Try POST with familyId in body
-        try {
-          membersResponse = await _dio.post(
-            '/family/FamilyMembers',
-            data: {'familyId': familyId},
-          );
-          debugPrint('✅ POST request successful');
-        } catch (e) {
-          debugPrint('❌ POST request also failed');
-
-          // Method 3: Try getting family data and extract members
-          final familyResponse = await _dio.post(
-            '/family/getFamily',
-            data: {'familyId': familyId},
-          );
-
-          if (familyResponse.statusCode == 200) {
-            final familyData = familyResponse.data['family'];
-            if (familyData != null && familyData['members'] != null) {
-              final members = familyData['members'] as List;
-              _processMembersData(members);
-              return;
-            }
-          }
-
-          throw Exception('All methods failed to fetch family members');
-        }
-      }
-
-      if (membersResponse.statusCode == 200) {
-        final responseData = membersResponse.data;
-        debugPrint('📄 Response data: \\${responseData.toString()}');
-
-        List<dynamic> membersData = [];
-
-        // Handle different response structures
-        if (responseData['familyWithMembers'] != null) {
-          // Structure: { "familyWithMembers": { "members": [...] } }
-          membersData = responseData['familyWithMembers']['members'] ?? [];
-        } else if (responseData['members'] != null) {
-          // Structure: { "members": [...] }
-          membersData = responseData['members'];
-        } else if (responseData is List) {
-          // Structure: [...]
-          membersData = responseData;
-        } else {
-          debugPrint('❌ Unexpected response structure');
-          throw Exception('Unexpected response structure');
-        }
-
-        _processMembersData(membersData);
-      } else {
-        throw Exception(
-          'Failed to fetch family members: \\${membersResponse.statusCode}',
+      debugPrint(
+        '✅ Successfully loaded ${members.length} family members for family tree (via FamilyApiService)',
+      );
+      for (final member in members) {
+        debugPrint(
+          '   - \\${member.name} (\\${member.role}) - Avatar: \\${member.avatar.isNotEmpty ? '✅' : '❌'} - Gender: \\${member.gender.isNotEmpty ? member.gender : '❌'} - ID: \\${member.id}',
         );
       }
     } catch (e) {
-      debugPrint('❌ Error fetching family members: $e');
+      debugPrint('❌ Error fetching family members (FamilyApiService): $e');
       setState(() {
         _error = e.toString();
         _isLoading = false;
       });
-    }
-  }
-
-  void _processMembersData(List<dynamic> membersData) {
-    debugPrint('🔄 Processing ${membersData.length} members');
-
-    final members =
-        membersData.map((memberData) {
-          debugPrint('👤 Processing member: ${memberData.toString()}');
-
-          return FamilyMember(
-            id:
-                memberData['_id']?.toString() ??
-                memberData['id']?.toString() ??
-                DateTime.now().millisecondsSinceEpoch.toString(),
-            name: memberData['name']?.toString() ?? 'Unknown Member',
-            role: memberData['role']?.toString() ?? 'member',
-            gender: memberData['gender']?.toString() ?? '',
-            avatar: memberData['avatar']?.toString() ?? '',
-            birthday:
-                memberData['birthday'] != null
-                    ? DateTime.tryParse(memberData['birthday'].toString())
-                    : null,
-            interests:
-                memberData['interests'] != null &&
-                        memberData['interests'] is List
-                    ? List<String>.from(memberData['interests'])
-                    : <String>[],
-          );
-        }).toList();
-
-    setState(() {
-      _familyMembers = members;
-      _isLoading = false;
-    });
-
-    debugPrint('✅ Successfully loaded ${members.length} family members');
-    for (final member in members) {
-      debugPrint('   - ${member.name} (${member.role})');
     }
   }
 
@@ -618,6 +498,11 @@ class _FamilyTreeScreenState extends State<FamilyTreeScreen> {
   }
 
   void _showMemberDialog(FamilyMember member) {
+    // Fix asset path: remove leading slash if present
+    String fixedAvatar = member.avatar;
+    if (fixedAvatar.startsWith('/assets/')) {
+      fixedAvatar = fixedAvatar.substring(1);
+    }
     showDialog(
       context: context,
       builder:
@@ -650,8 +535,22 @@ class _FamilyTreeScreenState extends State<FamilyTreeScreen> {
                         member.avatar.isNotEmpty
                             ? ClipOval(
                               child:
-                                  member.avatar.startsWith('assets/')
+                                  (fixedAvatar.endsWith('.png') ||
+                                              fixedAvatar.endsWith('.jpg') ||
+                                              fixedAvatar.endsWith('.jpeg')) &&
+                                          fixedAvatar.startsWith('assets/')
                                       ? Image.asset(
+                                        fixedAvatar,
+                                        width: 80,
+                                        height: 80,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                _buildInitialAvatar(member),
+                                      )
+                                      : (fixedAvatar.startsWith('http') ||
+                                          fixedAvatar.startsWith('https'))
+                                      ? Image.network(
                                         member.avatar,
                                         width: 80,
                                         height: 80,
@@ -660,15 +559,7 @@ class _FamilyTreeScreenState extends State<FamilyTreeScreen> {
                                             (context, error, stackTrace) =>
                                                 _buildInitialAvatar(member),
                                       )
-                                      : Image.network(
-                                        member.avatar,
-                                        width: 80,
-                                        height: 80,
-                                        fit: BoxFit.cover,
-                                        errorBuilder:
-                                            (context, error, stackTrace) =>
-                                                _buildInitialAvatar(member),
-                                      ),
+                                      : _buildInitialAvatar(member),
                             )
                             : _buildInitialAvatar(member),
                   ),
@@ -696,6 +587,11 @@ class _FamilyTreeScreenState extends State<FamilyTreeScreen> {
                     'Gender',
                     member.gender.isEmpty ? 'Not specified' : member.gender,
                   ),
+                  if (member.birthday != null)
+                    _buildDialogInfoRow(
+                      'Age',
+                      _calculateAge(member.birthday!).toString(),
+                    ),
                   if (member.birthday != null)
                     _buildDialogInfoRow(
                       'Birthday',
@@ -774,96 +670,14 @@ class _FamilyTreeScreenState extends State<FamilyTreeScreen> {
       ),
     );
   }
-}
 
-class FamilyMemberCircle extends StatelessWidget {
-  final FamilyMember member;
-  final Color bgColor;
-  final VoidCallback onTap;
-
-  const FamilyMemberCircle({
-    super.key,
-    required this.member,
-    required this.bgColor,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: bgColor,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.grey.shade300, width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: bgColor.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: ClipOval(
-              child:
-                  member.avatar.isNotEmpty
-                      ? (member.avatar.startsWith('assets/')
-                          ? Image.asset(
-                            member.avatar,
-                            fit: BoxFit.cover,
-                            width: 72,
-                            height: 72,
-                            errorBuilder:
-                                (context, error, stackTrace) =>
-                                    _buildInitialAvatar(),
-                          )
-                          : Image.network(
-                            member.avatar,
-                            fit: BoxFit.cover,
-                            width: 72,
-                            height: 72,
-                            errorBuilder:
-                                (context, error, stackTrace) =>
-                                    _buildInitialAvatar(),
-                          ))
-                      : _buildInitialAvatar(),
-            ),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: 80,
-            child: Text(
-              member.name,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-                color: Colors.black87,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInitialAvatar() {
-    return Center(
-      child: Text(
-        member.name.isNotEmpty ? member.name[0].toUpperCase() : 'U',
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 28,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
+  int _calculateAge(DateTime birthday) {
+    final today = DateTime.now();
+    int age = today.year - birthday.year;
+    if (today.month < birthday.month ||
+        (today.month == birthday.month && today.day < birthday.day)) {
+      age--;
+    }
+    return age;
   }
 }

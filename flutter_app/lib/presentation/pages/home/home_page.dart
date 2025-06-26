@@ -52,69 +52,68 @@ class _HomeViewState extends State<HomeView> {
       dio.options.connectTimeout = const Duration(seconds: 10);
       dio.options.receiveTimeout = const Duration(seconds: 10);
 
+      debugPrint('🔍 Home: Fetching family members...');
+
+      // Step 1: Get user info to get familyId
       final userResponse = await dio.get('/users/user');
+      if (userResponse.statusCode != 200) {
+        debugPrint('❌ Home: Failed to get user info');
+        return;
+      }
+
       final userData = userResponse.data['user'] ?? userResponse.data;
       final familyId = userData['familyId'];
-      if (familyId == null) return;
 
-      // Try GET /family/FamilyMembers (like FamilyTreeScreen)
+      if (familyId == null) {
+        debugPrint('❌ Home: No family ID found');
+        return;
+      }
+
+      debugPrint('👨‍👩‍👧‍👦 Home: Family ID: $familyId');
+
+      // Step 2: Make POST request to get family members (as backend expects)
       Response? membersResponse;
+
       try {
-        membersResponse = await dio.get('/family/FamilyMembers');
-      } catch (_) {
+        debugPrint('🔄 Home: Making POST request to /family/FamilyMembers...');
+        membersResponse = await dio.post(
+          '/family/FamilyMembers',
+          data: {'familyId': familyId},
+        );
+        debugPrint('✅ Home: POST request successful');
+      } catch (e) {
+        debugPrint('❌ Home: POST request failed: $e');
+
+        // Fallback: Try getFamily
         try {
-          membersResponse = await dio.post(
-            '/family/FamilyMembers',
-            data: {'familyId': familyId},
-          );
-        } catch (_) {
+          debugPrint('🔄 Home: Trying getFamily fallback...');
           final familyResponse = await dio.post(
             '/family/getFamily',
             data: {'familyId': familyId},
           );
+
           if (familyResponse.statusCode == 200) {
             final familyData = familyResponse.data['family'];
             if (familyData != null && familyData['members'] != null) {
-              setState(() {
-                _familyMembers =
-                    (familyData['members'] as List)
-                        .map(
-                          (memberData) => FamilyMember(
-                            id:
-                                memberData['_id']?.toString() ??
-                                memberData['id']?.toString() ??
-                                DateTime.now().millisecondsSinceEpoch
-                                    .toString(),
-                            name:
-                                memberData['name']?.toString() ??
-                                'Unknown Member',
-                            role: memberData['role']?.toString() ?? 'member',
-                            gender: memberData['gender']?.toString() ?? '',
-                            avatar: memberData['avatar']?.toString() ?? '',
-                            birthday:
-                                memberData['birthday'] != null
-                                    ? DateTime.tryParse(
-                                      memberData['birthday'].toString(),
-                                    )
-                                    : null,
-                            interests:
-                                memberData['interests'] != null &&
-                                        memberData['interests'] is List
-                                    ? List<String>.from(memberData['interests'])
-                                    : <String>[],
-                          ),
-                        )
-                        .toList();
-              });
+              _processHomeMembersData(familyData['members'] as List);
               return;
             }
           }
+          debugPrint('❌ Home: Fallback also failed');
+          return;
+        } catch (e2) {
+          debugPrint('❌ Home: Fallback also failed: $e2');
           return;
         }
       }
+
       if (membersResponse.statusCode == 200) {
         final responseData = membersResponse.data;
+        debugPrint('📄 Home: Members response received');
+
         List<dynamic> membersData = [];
+
+        // Handle different response structures
         if (responseData['familyWithMembers'] != null) {
           membersData = responseData['familyWithMembers']['members'] ?? [];
         } else if (responseData['members'] != null) {
@@ -122,37 +121,64 @@ class _HomeViewState extends State<HomeView> {
         } else if (responseData is List) {
           membersData = responseData;
         }
-        setState(() {
-          _familyMembers =
-              membersData
-                  .map(
-                    (memberData) => FamilyMember(
-                      id:
-                          memberData['_id']?.toString() ??
-                          memberData['id']?.toString() ??
-                          DateTime.now().millisecondsSinceEpoch.toString(),
-                      name: memberData['name']?.toString() ?? 'Unknown Member',
-                      role: memberData['role']?.toString() ?? 'member',
-                      gender: memberData['gender']?.toString() ?? '',
-                      avatar: memberData['avatar']?.toString() ?? '',
-                      birthday:
-                          memberData['birthday'] != null
-                              ? DateTime.tryParse(
-                                memberData['birthday'].toString(),
-                              )
-                              : null,
-                      interests:
-                          memberData['interests'] != null &&
-                                  memberData['interests'] is List
-                              ? List<String>.from(memberData['interests'])
-                              : <String>[],
-                    ),
-                  )
-                  .toList();
-        });
+
+        _processHomeMembersData(membersData);
       }
     } catch (e) {
-      // Optionally handle error
+      debugPrint('❌ Home: Error fetching family members: $e');
+    }
+  }
+
+  void _processHomeMembersData(List<dynamic> membersData) {
+    debugPrint('🔄 Home: Processing ${membersData.length} members');
+
+    final members =
+        membersData.map((memberData) {
+          debugPrint(
+            '👤 Home: Processing member: ${memberData['name'] ?? 'Unknown'}',
+          );
+
+          // Debug missing data
+          final avatar = memberData['avatar']?.toString() ?? '';
+          final gender = memberData['gender']?.toString() ?? '';
+
+          if (avatar.isEmpty) {
+            debugPrint('⚠️ Home: Missing avatar for: ${memberData['name']}');
+          }
+          if (gender.isEmpty) {
+            debugPrint('⚠️ Home: Missing gender for: ${memberData['name']}');
+          }
+
+          return FamilyMember(
+            id:
+                memberData['_id']?.toString() ??
+                memberData['id']?.toString() ??
+                DateTime.now().millisecondsSinceEpoch.toString(),
+            name: memberData['name']?.toString() ?? 'Unknown Member',
+            role: memberData['role']?.toString() ?? 'member',
+            gender: gender,
+            avatar: avatar,
+            birthday:
+                memberData['birthday'] != null
+                    ? DateTime.tryParse(memberData['birthday'].toString())
+                    : null,
+            interests:
+                memberData['interests'] != null &&
+                        memberData['interests'] is List
+                    ? List<String>.from(memberData['interests'])
+                    : <String>[],
+          );
+        }).toList();
+
+    setState(() {
+      _familyMembers = members;
+    });
+
+    debugPrint('✅ Home: Successfully loaded ${members.length} family members');
+    for (final member in members) {
+      debugPrint(
+        '   - ${member.name} (${member.role}) - Avatar: ${member.avatar.isNotEmpty ? '✅' : '❌'}',
+      );
     }
   }
 
@@ -284,6 +310,64 @@ class _HomeViewState extends State<HomeView> {
         (currentUser != null && currentUser.name.isNotEmpty)
             ? currentUser.name
             : user.name;
+    // --- Consistent avatar logic ---
+    String fixedAvatar = avatarPath;
+    if (fixedAvatar.startsWith('/assets/')) {
+      fixedAvatar = fixedAvatar.substring(1);
+    }
+    Widget buildAvatar() {
+      if (fixedAvatar.isNotEmpty) {
+        if ((fixedAvatar.endsWith('.png') ||
+                fixedAvatar.endsWith('.jpg') ||
+                fixedAvatar.endsWith('.jpeg')) &&
+            fixedAvatar.startsWith('assets/')) {
+          return ClipOval(
+            child: Image.asset(
+              fixedAvatar,
+              width: 60,
+              height: 60,
+              fit: BoxFit.cover,
+              errorBuilder:
+                  (context, error, stackTrace) => Text(
+                    displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+            ),
+          );
+        } else if (fixedAvatar.startsWith('http') ||
+            fixedAvatar.startsWith('https')) {
+          return ClipOval(
+            child: Image.network(
+              avatarPath,
+              width: 60,
+              height: 60,
+              fit: BoxFit.cover,
+              errorBuilder:
+                  (context, error, stackTrace) => Text(
+                    displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+            ),
+          );
+        }
+      }
+      return Text(
+        displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 24,
+          fontWeight: FontWeight.w700,
+        ),
+      );
+    }
 
     return Container(
       width: double.infinity,
@@ -322,59 +406,7 @@ class _HomeViewState extends State<HomeView> {
                     ),
                   ],
                 ),
-                child: Center(
-                  child:
-                      avatarPath.isNotEmpty
-                          ? (avatarPath.startsWith('assets/')
-                              ? ClipOval(
-                                child: Image.asset(
-                                  avatarPath,
-                                  width: 60,
-                                  height: 60,
-                                  fit: BoxFit.cover,
-                                  errorBuilder:
-                                      (context, error, stackTrace) => Text(
-                                        displayName.isNotEmpty
-                                            ? displayName[0].toUpperCase()
-                                            : 'U',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                ),
-                              )
-                              : ClipOval(
-                                child: Image.network(
-                                  avatarPath,
-                                  width: 60,
-                                  height: 60,
-                                  fit: BoxFit.cover,
-                                  errorBuilder:
-                                      (context, error, stackTrace) => Text(
-                                        displayName.isNotEmpty
-                                            ? displayName[0].toUpperCase()
-                                            : 'U',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                ),
-                              ))
-                          : Text(
-                            displayName.isNotEmpty
-                                ? displayName[0].toUpperCase()
-                                : 'U',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                ),
+                child: Center(child: buildAvatar()),
               ),
               const SizedBox(width: 16),
               Expanded(

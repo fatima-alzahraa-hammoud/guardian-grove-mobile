@@ -231,24 +231,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     ChangePasswordEvent event,
     Emitter<AuthState> emit,
   ) async {
+    emit(AuthLoading());
     try {
-      emit(AuthLoading());
-
-      debugPrint('🔑 Starting password change process...');
-
+      debugPrint('🔑 Attempting to change password');
+      // Validate passwords match (if not already validated in UI)
+      if (event.changePasswordRequest.newPassword !=
+          event.changePasswordRequest.confirmPassword) {
+        emit(const AuthError('New passwords do not match'));
+        return;
+      }
+      // Call the API
       await _authRemoteDataSource.changePassword(event.changePasswordRequest);
-
       debugPrint('✅ Password changed successfully');
-
       // Get updated user data
       final updatedUser = await _authRemoteDataSource.getCurrentUser();
-
-      emit(
-        AuthAuthenticated(
-          user: updatedUser,
-          requiresPasswordChange: false, // Password was just changed
-        ),
-      );
+      // Optionally update local storage
+      await StorageService.saveUser(updatedUser);
+      emit(PasswordChangeSuccess(user: updatedUser));
+      // Optionally, you can emit AuthAuthenticated after success if you want to transition to the main app
+      emit(AuthAuthenticated(user: updatedUser, requiresPasswordChange: false));
     } on NetworkException catch (e) {
       debugPrint('🌐 Network error during password change: ${e.message}');
       emit(AuthError(e.message));

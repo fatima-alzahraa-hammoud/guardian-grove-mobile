@@ -163,50 +163,122 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
     debugPrint('👥 Fetching family members from backend');
 
     try {
-      final response = await apiClient.dio.get('/family/FamilyMembers');
-
-      if (response.statusCode == 200) {
-        debugPrint('✅ Family members received from API');
-        final membersData = response.data['data'] ?? response.data;
-
-        if (membersData is List) {
-          return List<fam.FamilyMember>.from(
-            membersData.map(
-              (memberData) => fam.FamilyMember(
-                id:
-                    memberData['_id']?.toString() ??
-                    memberData['id']?.toString() ??
-                    '',
-                name:
-                    '${memberData['firstName']?.toString() ?? memberData['first_name']?.toString() ?? 'Member'} ${memberData['lastName']?.toString() ?? memberData['last_name']?.toString() ?? ''}',
-                role: memberData['role']?.toString() ?? 'member',
-                gender: memberData['gender']?.toString() ?? '',
-                avatar: memberData['avatar']?.toString() ?? '',
-                birthday:
-                    memberData['birthday'] != null
-                        ? DateTime.tryParse(memberData['birthday'].toString())
-                        : null,
-                interests:
-                    memberData['interests'] != null &&
-                            memberData['interests'] is List
-                        ? List<String>.from(memberData['interests'])
-                        : <String>[],
-              ),
-            ),
-          );
-        }
-      } else {
-        debugPrint('❌ Failed to fetch family members: ${response.statusCode}');
+      // Step 1: Get user info to get familyId
+      final userResponse = await apiClient.dio.get('/users/user');
+      if (userResponse.statusCode != 200) {
+        throw Exception('Failed to get user info');
       }
-    } on DioException catch (e) {
-      debugPrint(
-        '🌐 API Error fetching family members: ${e.response?.statusCode} - ${e.message}',
-      );
-    } catch (e) {
-      debugPrint('❌ Unexpected error fetching family members: $e');
-    }
 
-    return [];
+      final userData = userResponse.data['user'] ?? userResponse.data;
+      final familyId = userData['familyId'];
+
+      if (familyId == null) {
+        debugPrint('❌ No family ID found for user');
+        return [];
+      }
+
+      debugPrint('👨‍👩‍👧‍👦 Using family ID: $familyId');
+
+      // Step 2: Make POST request to get family members (as backend expects)
+      Response? membersResponse;
+
+      try {
+        debugPrint('🔄 Making POST request to /family/FamilyMembers...');
+        membersResponse = await apiClient.dio.post(
+          '/family/FamilyMembers',
+          data: {'familyId': familyId},
+        );
+        debugPrint('✅ POST request successful');
+      } catch (e) {
+        debugPrint('❌ POST request failed: $e');
+
+        // Fallback to getFamily
+        try {
+          debugPrint('🔄 Trying getFamily fallback...');
+          final familyResponse = await apiClient.dio.post(
+            '/family/getFamily',
+            data: {'familyId': familyId},
+          );
+
+          if (familyResponse.statusCode == 200) {
+            final familyData = familyResponse.data['family'];
+            if (familyData != null && familyData['members'] != null) {
+              return _processMembersData(familyData['members'] as List);
+            }
+          }
+          return [];
+        } catch (e2) {
+          debugPrint('❌ Fallback also failed: $e2');
+          return [];
+        }
+      }
+
+      if (membersResponse.statusCode == 200) {
+        final responseData = membersResponse.data;
+        debugPrint('📄 Members response received');
+
+        List<dynamic> membersData = [];
+
+        // Handle different response structures
+        if (responseData['familyWithMembers'] != null) {
+          membersData = responseData['familyWithMembers']['members'] ?? [];
+        } else if (responseData['members'] != null) {
+          membersData = responseData['members'];
+        } else if (responseData is List) {
+          membersData = responseData;
+        }
+
+        return _processMembersData(membersData);
+      } else {
+        debugPrint(
+          '❌ Failed to fetch family members: {membersResponse.statusCode}',
+        );
+        return [];
+      }
+    } catch (e) {
+      debugPrint('❌ Error fetching family members: $e');
+      return [];
+    }
+  }
+
+  // Helper method to process members data
+  List<fam.FamilyMember> _processMembersData(List<dynamic> membersData) {
+    debugPrint('🔄 Processing {membersData.length} members');
+
+    return membersData.map((memberData) {
+      final memberName = memberData['name']?.toString() ?? 'Unknown';
+      debugPrint('👤 Processing member: $memberName');
+
+      // Debug missing data
+      final avatar = memberData['avatar']?.toString() ?? '';
+      final gender = memberData['gender']?.toString() ?? '';
+
+      if (avatar.isEmpty) {
+        debugPrint('⚠️ Missing avatar for: $memberName');
+      }
+      if (gender.isEmpty) {
+        debugPrint('⚠️ Missing gender for: $memberName');
+      }
+
+      return fam.FamilyMember(
+        id:
+            memberData['_id']?.toString() ??
+            memberData['id']?.toString() ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
+        name: memberName,
+        role: memberData['role']?.toString() ?? 'member',
+        gender: gender,
+        avatar: avatar,
+        birthday:
+            memberData['birthday'] != null
+                ? DateTime.tryParse(memberData['birthday'].toString())
+                : null,
+        interests:
+            memberData['interests'] != null && memberData['interests'] is List
+                ? List<String>.from(memberData['interests'])
+                : <String>[],
+      );
+    }).toList();
   }
 
   /// Convert backend user and family data to HomeData model
@@ -619,5 +691,27 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       category: categories[randomIndex],
       date: DateTime.now(),
     );
+  }
+
+  /// Change user password (for temp password flow)
+  Future<bool> changePassword({
+    required String oldPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    try {
+      final response = await apiClient.dio.put(
+        '/users/updatePassword',
+        data: {
+          'oldPassword': oldPassword,
+          'newPassword': newPassword,
+          'confirmPassword': confirmPassword,
+        },
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('❌ Error changing password: $e');
+      return false;
+    }
   }
 }
