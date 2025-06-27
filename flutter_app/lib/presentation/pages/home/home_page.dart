@@ -9,6 +9,7 @@ import '../auth/add_member_screen.dart';
 import '../../../core/services/storage_service.dart';
 import 'home_subScreens/family_tree_screen.dart';
 import 'home_subScreens/family_journal.dart';
+import 'home_subScreens/notes.dart';
 import 'package:dio/dio.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../data/models/family_model.dart' show FamilyMember;
@@ -1604,6 +1605,12 @@ class _HomeViewState extends State<HomeView> {
       Navigator.of(
         context,
       ).push(MaterialPageRoute(builder: (context) => const FamilyTreeScreen()));
+      return;
+    }
+    if (routeName == '/notes') {
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (context) => const NotesScreen()));
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(
