@@ -39,14 +39,6 @@ class MainAppView extends StatelessWidget {
     ProfileScreen(),
   ];
 
-  final List<String> _screenTitles = const [
-    'Guardian Grove',
-    'Leaderboard',
-    'AI Assistant',
-    'Messages',
-    'Profile',
-  ];
-
   final List<IconData> _navIcons = const [
     Icons.home_rounded,
     Icons.leaderboard_rounded,
@@ -83,28 +75,24 @@ class MainAppView extends StatelessWidget {
       automaticallyImplyLeading: false,
       title: Row(
         children: [
-          // App Logo
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: const Color(0xFF0EA5E9).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: const Color(0xFF0EA5E9).withValues(alpha: 0.3),
-              ),
-            ),
-            child: const Icon(
-              Icons.eco_rounded,
-              color: Color(0xFF4CAF50),
-              size: 24,
-            ),
+          // App Logo (no box, no border, slightly bigger)
+          Image.asset(
+            'assets/images/logo.png',
+            width: 48,
+            height: 48,
+            fit: BoxFit.contain,
+            errorBuilder:
+                (context, error, stackTrace) => const Icon(
+                  Icons.eco_rounded,
+                  color: Color(0xFF4CAF50),
+                  size: 36,
+                ),
           ),
           const SizedBox(width: 12),
-          // Dynamic Title
-          Text(
-            _screenTitles[currentIndex],
-            style: const TextStyle(
+          // App Title
+          const Text(
+            'Guardian Grove',
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
               color: Color(0xFF1A202C),
@@ -148,7 +136,7 @@ class MainAppView extends StatelessWidget {
           ),
         ),
 
-        // User Avatar Menu
+        // User Avatar Menu (show real avatar if available)
         Container(
           margin: const EdgeInsets.only(right: 16),
           child: PopupMenuButton<String>(
@@ -160,30 +148,51 @@ class MainAppView extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF0EA5E9), Color(0xFF0284C7)],
-                ),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF0EA5E9).withValues(alpha: 0.3),
+                    color: const Color(0xFF0EA5E9).withValues(alpha: 20),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
                 ],
               ),
-              child: Center(
-                child: Text(
-                  user?.name.isNotEmpty == true
-                      ? user!.name[0].toUpperCase()
-                      : 'U',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
+              child:
+                  user?.avatar != null && user.avatar.toString().isNotEmpty
+                      ? ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.asset(
+                          user.avatar,
+                          fit: BoxFit.cover,
+                          errorBuilder:
+                              (context, error, stackTrace) => Center(
+                                child: Text(
+                                  user?.name.isNotEmpty == true
+                                      ? user!.name[0].toUpperCase()
+                                      : 'U',
+                                  style: const TextStyle(
+                                    color: Color(0xFF0EA5E9),
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                        ),
+                      )
+                      : Center(
+                        child: Text(
+                          user?.name.isNotEmpty == true
+                              ? user!.name[0].toUpperCase()
+                              : 'U',
+                          style: const TextStyle(
+                            color: Color(0xFF0EA5E9),
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
             ),
             itemBuilder:
                 (context) => [

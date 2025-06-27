@@ -6,6 +6,7 @@ import 'package:flutter_app/data/models/user_model.dart';
 import 'package:flutter_app/data/models/family_model.dart' show FamilyMember;
 import 'package:flutter_app/presentation/bloc/home/home_bloc.dart';
 import 'package:flutter_app/presentation/pages/auth/add_member_screen.dart';
+import 'package:flutter_app/presentation/pages/main/profile/edit_profile_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -100,6 +101,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _isLoadingFamilyMembers = false;
       });
     }
+  }
+
+  void _refreshUserData() {
+    setState(() {
+      currentUser = StorageService.getUser();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _refreshUserData();
   }
 
   @override
@@ -362,27 +375,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               // Edit Profile Button
               GestureDetector(
-                onTap: () {
-                  // TODO: Navigate to edit profile screen
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Row(
-                        children: [
-                          Icon(
-                            Icons.edit_rounded,
-                            color: Colors.white,
-                            size: 20,
+                onTap: () async {
+                  if (currentUser == null) return;
+                  // Navigate to EditProfileScreen
+                  final isParent = _isCurrentUserParent();
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (context) => EditProfileScreen(
+                            user: currentUser!,
+                            familyName: homeData?.familyName ?? '',
+                            familyAvatar: homeData?.familyAvatar ?? '',
+                            isParent: isParent,
+                            onConfirm: (data) {
+                              _refreshUserData();
+                              _fetchFamilyMembersDirect();
+                            },
                           ),
-                          SizedBox(width: 12),
-                          Text('Opening edit profile...'),
-                        ],
-                      ),
-                      backgroundColor: const Color(0xFF0EA5E9),
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      duration: const Duration(seconds: 2),
                     ),
                   );
                 },

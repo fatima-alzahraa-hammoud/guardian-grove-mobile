@@ -151,42 +151,38 @@ class FamilyApiService {
   List<FamilyMember> _processMembersData(List<dynamic> membersData) {
     debugPrint('🔄 FamilyApiService: Processing ${membersData.length} members');
 
-    final members =
-        membersData.map((memberData) {
-          final name = memberData['name']?.toString() ?? 'Unknown Member';
-          final avatar = memberData['avatar']?.toString() ?? '';
-          final gender = memberData['gender']?.toString() ?? '';
-          final role = memberData['role']?.toString() ?? 'member';
+    final members = membersData.map((memberData) {
+      final name = memberData['name']?.toString() ?? 'Unknown Member';
+      final avatar = memberData['avatar']?.toString() ?? '';
+      final gender = memberData['gender']?.toString() ?? '';
+      final role = memberData['role']?.toString() ?? 'member';
 
-          debugPrint('👤 FamilyApiService: Processing $name');
-          debugPrint('   Role: $role');
-          debugPrint(
-            '   Avatar: ${avatar.isEmpty ? '❌ MISSING' : '✅ $avatar'}',
-          );
-          debugPrint(
-            '   Gender: ${gender.isEmpty ? '❌ MISSING' : '✅ $gender'}',
-          );
+      debugPrint('👤 FamilyApiService: Processing $name');
+      debugPrint('   Role: $role');
+      debugPrint(
+        '   Avatar: ${avatar.isEmpty ? '❌ MISSING' : '✅ $avatar'}',
+      );
+      debugPrint(
+        '   Gender: ${gender.isEmpty ? '❌ MISSING' : '✅ $gender'}',
+      );
 
-          return FamilyMember(
-            id:
-                memberData['_id']?.toString() ??
-                memberData['id']?.toString() ??
-                DateTime.now().millisecondsSinceEpoch.toString(),
-            name: name,
-            role: role,
-            gender: gender,
-            avatar: avatar,
-            birthday:
-                memberData['birthday'] != null
-                    ? DateTime.tryParse(memberData['birthday'].toString())
-                    : null,
-            interests:
-                memberData['interests'] != null &&
-                        memberData['interests'] is List
-                    ? List<String>.from(memberData['interests'])
-                    : <String>[],
-          );
-        }).toList();
+      return FamilyMember(
+        id: memberData['_id']?.toString() ??
+            memberData['id']?.toString() ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
+        name: name,
+        role: role,
+        gender: gender,
+        avatar: avatar,
+        birthday: memberData['birthday'] != null
+            ? DateTime.tryParse(memberData['birthday'].toString())
+            : null,
+        interests: memberData['interests'] != null &&
+                memberData['interests'] is List
+            ? List<String>.from(memberData['interests'])
+            : <String>[],
+      );
+    }).toList();
 
     debugPrint(
       '✅ FamilyApiService: Successfully processed ${members.length} members',
@@ -328,6 +324,186 @@ class FamilyApiService {
     } catch (e) {
       debugPrint('❌ [getFamilyCompleteData] Failed: $e');
       rethrow;
+    }
+  }
+
+  /// Update user profile - Enhanced to match backend API
+  Future<bool> updateUserProfile(Map<String, dynamic> userData) async {
+    try {
+      debugPrint('📝 FamilyApiService: Updating user profile...');
+      debugPrint('📄 Data being sent: $userData');
+      
+      // Your backend route is PUT /users/ (not /users/editUserProfile)
+      final response = await _dio.put('/users', data: userData);
+      
+      debugPrint('📄 Response status: ${response.statusCode}');
+      debugPrint('📄 Response data: ${response.data}');
+      
+      if (response.statusCode == 200) {
+        // Check for success message or user data in response
+        final responseData = response.data;
+        if (responseData['message'] != null || responseData['user'] != null) {
+          debugPrint('✅ FamilyApiService: User profile updated successfully');
+          return true;
+        }
+      }
+      
+      debugPrint('❌ FamilyApiService: Unexpected response format: ${response.data}');
+      return false;
+    } catch (e) {
+      debugPrint('❌ FamilyApiService: Error updating user profile: $e');
+      if (e is DioException) {
+        debugPrint('❌ DioException details: ${e.response?.data}');
+        debugPrint('❌ Status code: ${e.response?.statusCode}');
+        debugPrint('❌ Request data: ${e.requestOptions.data}');
+        debugPrint('❌ Request headers: ${e.requestOptions.headers}');
+        
+        // Provide more specific error messages based on status code
+        if (e.response?.statusCode == 401) {
+          throw Exception('Unauthorized: Please log in again');
+        } else if (e.response?.statusCode == 403) {
+          throw Exception('Forbidden: You don\'t have permission to update this profile');
+        } else if (e.response?.statusCode == 404) {
+          throw Exception('User not found');
+        } else if (e.response?.statusCode == 400) {
+          final errorMsg = e.response?.data['message'] ?? 'Invalid data provided';
+          throw Exception(errorMsg);
+        } else {
+          throw Exception('Network error: ${e.message}');
+        }
+      }
+      rethrow;
+    }
+  }
+
+  /// Update family details (name, email, avatar) - Enhanced to match backend API
+  Future<bool> updateFamilyDetails(Map<String, dynamic> familyData) async {
+    try {
+      debugPrint('📝 FamilyApiService: Updating family details...');
+      debugPrint('📄 Data being sent: $familyData');
+      
+      // Your backend expects PUT /family/updateFamily
+      final response = await _dio.put('/family/updateFamily', data: familyData);
+      
+      debugPrint('📄 Response status: ${response.statusCode}');
+      debugPrint('📄 Response data: ${response.data}');
+      
+      if (response.statusCode == 200) {
+        // Check for success message or family data in response
+        final responseData = response.data;
+        if (responseData['message'] != null || responseData['family'] != null) {
+          debugPrint('✅ FamilyApiService: Family details updated successfully');
+          return true;
+        }
+      }
+      
+      debugPrint('❌ FamilyApiService: Unexpected response format: ${response.data}');
+      return false;
+    } catch (e) {
+      debugPrint('❌ FamilyApiService: Error updating family details: $e');
+      if (e is DioException) {
+        debugPrint('❌ DioException details: ${e.response?.data}');
+        debugPrint('❌ Status code: ${e.response?.statusCode}');
+        debugPrint('❌ Request data: ${e.requestOptions.data}');
+        debugPrint('❌ Request headers: ${e.requestOptions.headers}');
+        
+        // Provide more specific error messages based on status code
+        if (e.response?.statusCode == 401) {
+          throw Exception('Unauthorized: Please log in again');
+        } else if (e.response?.statusCode == 403) {
+          throw Exception('Forbidden: You don\'t have permission to update family details');
+        } else if (e.response?.statusCode == 404) {
+          throw Exception('Family not found');
+        } else if (e.response?.statusCode == 400) {
+          final errorMsg = e.response?.data['message'] ?? 'Invalid family data provided';
+          throw Exception(errorMsg);
+        } else {
+          throw Exception('Network error: ${e.message}');
+        }
+      }
+      rethrow;
+    }
+  }
+
+  /// Update family profile (e.g., name, avatar) - Alias for updateFamilyDetails
+  Future<bool> updateFamilyProfile(Map<String, dynamic> familyData) async {
+    return await updateFamilyDetails(familyData);
+  }
+
+  /// Delete user by userId (or current user if not provided)
+  Future<bool> deleteUser({String? userId}) async {
+    try {
+      debugPrint('🗑️ FamilyApiService: Deleting user...');
+      final response = await _dio.delete(
+        '/users/deleteUser',
+        data: userId != null ? {'userId': userId} : {},
+      );
+      if (response.statusCode == 200 &&
+          (response.data['message'] != null || response.data['user'] != null)) {
+        debugPrint('✅ FamilyApiService: User deleted');
+        return true;
+      } else {
+        debugPrint('❌ FamilyApiService: Failed to delete user: ${response.data}');
+        return false;
+      }
+    } catch (e) {
+      debugPrint('❌ FamilyApiService: Error deleting user: $e');
+      return false;
+    }
+  }
+
+  /// Delete family by familyId
+  Future<bool> deleteFamily({required String familyId}) async {
+    try {
+      debugPrint('🗑️ FamilyApiService: Deleting family...');
+      final response = await _dio.delete(
+        '/family/deleteFamily',
+        data: {'familyId': familyId},
+      );
+      if (response.statusCode == 200 &&
+          (response.data['message'] != null)) {
+        debugPrint('✅ FamilyApiService: Family deleted');
+        return true;
+      } else {
+        debugPrint('❌ FamilyApiService: Failed to delete family: ${response.data}');
+        return false;
+      }
+    } catch (e) {
+      debugPrint('❌ FamilyApiService: Error deleting family: $e');
+      return false;
+    }
+  }
+
+  /// Get current user information
+  Future<Map<String, dynamic>?> getCurrentUser() async {
+    try {
+      debugPrint('🔍 FamilyApiService: Getting current user...');
+      final response = await _dio.get('/users/user');
+      if (response.statusCode == 200) {
+        final userData = response.data['user'] ?? response.data;
+        debugPrint('✅ FamilyApiService: Current user retrieved');
+        return userData;
+      } else {
+        debugPrint('❌ FamilyApiService: Failed to get current user');
+        return null;
+      }
+    } catch (e) {
+      debugPrint('❌ FamilyApiService: Error getting current user: $e');
+      return null;
+    }
+  }
+
+  /// Validate if user can edit family details (must be parent/admin)
+  Future<bool> canEditFamilyDetails() async {
+    try {
+      final userData = await getCurrentUser();
+      if (userData == null) return false;
+      
+      final role = userData['role']?.toString().toLowerCase() ?? '';
+      return role == 'parent' || role == 'admin';
+    } catch (e) {
+      debugPrint('❌ FamilyApiService: Error checking family edit permissions: $e');
+      return false;
     }
   }
 }
