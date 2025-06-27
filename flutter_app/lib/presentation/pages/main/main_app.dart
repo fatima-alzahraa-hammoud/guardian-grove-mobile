@@ -151,48 +151,8 @@ class MainAppView extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: const Color(0xFFE2E8F0)),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF0EA5E9).withValues(alpha: 20),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
               ),
-              child:
-                  user?.avatar != null && user.avatar.toString().isNotEmpty
-                      ? ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Image.asset(
-                          user.avatar,
-                          fit: BoxFit.cover,
-                          errorBuilder:
-                              (context, error, stackTrace) => Center(
-                                child: Text(
-                                  user?.name.isNotEmpty == true
-                                      ? user!.name[0].toUpperCase()
-                                      : 'U',
-                                  style: const TextStyle(
-                                    color: Color(0xFF0EA5E9),
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                        ),
-                      )
-                      : Center(
-                        child: Text(
-                          user?.name.isNotEmpty == true
-                              ? user!.name[0].toUpperCase()
-                              : 'U',
-                          style: const TextStyle(
-                            color: Color(0xFF0EA5E9),
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
+              child: _buildUserAvatar(user),
             ),
             itemBuilder:
                 (context) => [
@@ -587,6 +547,78 @@ class MainAppView extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildUserAvatar(dynamic user) {
+    String avatarPath = '';
+    if (user != null &&
+        user.avatar != null &&
+        user.avatar.toString().isNotEmpty) {
+      avatarPath = user.avatar.toString();
+    }
+    String displayName =
+        user != null && user.name != null && user.name.isNotEmpty
+            ? user.name
+            : '';
+    String fixedAvatar = avatarPath;
+    if (fixedAvatar.startsWith('/assets/')) {
+      fixedAvatar = fixedAvatar.substring(1);
+    }
+    if (fixedAvatar.isNotEmpty) {
+      if ((fixedAvatar.endsWith('.png') ||
+              fixedAvatar.endsWith('.jpg') ||
+              fixedAvatar.endsWith('.jpeg')) &&
+          fixedAvatar.startsWith('assets/')) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Image.asset(
+            fixedAvatar,
+            fit: BoxFit.cover,
+            errorBuilder:
+                (context, error, stackTrace) => Center(
+                  child: Text(
+                    displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
+                    style: const TextStyle(
+                      color: Color(0xFF0EA5E9),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+          ),
+        );
+      } else if (fixedAvatar.startsWith('http') ||
+          fixedAvatar.startsWith('https')) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Image.network(
+            fixedAvatar,
+            fit: BoxFit.cover,
+            errorBuilder:
+                (context, error, stackTrace) => Center(
+                  child: Text(
+                    displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
+                    style: const TextStyle(
+                      color: Color(0xFF0EA5E9),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+          ),
+        );
+      }
+    }
+    return Center(
+      child: Text(
+        displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
+        style: const TextStyle(
+          color: Color(0xFF0EA5E9),
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
     );
   }
 }

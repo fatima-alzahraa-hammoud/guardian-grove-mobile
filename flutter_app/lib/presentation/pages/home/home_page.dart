@@ -34,11 +34,16 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   List<FamilyMember> _familyMembers = [];
+  Map<String, dynamic>? _monthlyStats; // Add this
+  Map<String, dynamic>? _lastUnlockedAchievement; // Add this
+  bool _noAchievements = false; // Add this
 
   @override
   void initState() {
     super.initState();
     _loadFamilyMembersDirectly();
+    _fetchMonthlyStats(); // Add this
+    _fetchLastUnlockedAchievement(); // Add this
   }
 
   Future<void> _loadFamilyMembersDirectly() async {
@@ -180,6 +185,270 @@ class _HomeViewState extends State<HomeView> {
         '   - ${member.name} (${member.role}) - Avatar: ${member.avatar.isNotEmpty ? '✅' : '❌'}',
       );
     }
+  }
+
+  Future<void> _fetchMonthlyStats() async {
+    try {
+      final dio = Dio();
+      final token = StorageService.getToken();
+      if (token != null) {
+        dio.options.headers['Authorization'] = 'Bearer $token';
+      }
+      dio.options.baseUrl = AppConstants.baseUrl;
+
+      final response = await dio.get('/userGoals/monthlyStats');
+      if (response.statusCode == 200) {
+        setState(() {
+          _monthlyStats = response.data;
+        });
+      }
+    } catch (e) {
+      debugPrint('❌ Error fetching monthly stats: $e');
+    }
+  }
+
+  Future<void> _fetchLastUnlockedAchievement() async {
+    try {
+      final dio = Dio();
+      final token = StorageService.getToken();
+      if (token != null) {
+        dio.options.headers['Authorization'] = 'Bearer $token';
+      }
+      dio.options.baseUrl = AppConstants.baseUrl;
+
+      final response = await dio.get('/achievements/lastUnlocked');
+      if (response.statusCode == 200) {
+        if (response.data['message'] == 'No achievements') {
+          setState(() {
+            _noAchievements = true;
+          });
+        } else {
+          setState(() {
+            _lastUnlockedAchievement = response.data['lastUnlockedAchievement'];
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ Error fetching achievements: $e');
+    }
+  }
+
+  void _showProgressDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Your Progress',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1A202C),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                // Tasks Progress
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0F9FF),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFF0EA5E9).withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(
+                                0xFF0EA5E9,
+                              ).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.task_alt_rounded,
+                              color: Color(0xFF0EA5E9),
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          const Text(
+                            'Tasks Completed',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1A202C),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      if (_monthlyStats != null) ...[
+                        Text(
+                          '${_monthlyStats!['completedTasks'] ?? 0} / ${_monthlyStats!['totalTasks'] ?? 0}',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF0EA5E9),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        LinearProgressIndicator(
+                          value:
+                              (_monthlyStats!['totalTasks'] ?? 0) > 0
+                                  ? (_monthlyStats!['completedTasks'] ?? 0) /
+                                      (_monthlyStats!['totalTasks'] ?? 0)
+                                  : 0.0,
+                          backgroundColor: const Color(0xFFE2E8F0),
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            Color(0xFF0EA5E9),
+                          ),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ] else ...[
+                        const Text(
+                          '0 / 0',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF0EA5E9),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Goals Progress
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF7ED),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFFF59E0B).withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(
+                                0xFFF59E0B,
+                              ).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.flag_rounded,
+                              color: Color(0xFFF59E0B),
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          const Text(
+                            'Goals Completed',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1A202C),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      if (_monthlyStats != null) ...[
+                        Text(
+                          '${_monthlyStats!['completedGoals'] ?? 0} / ${_monthlyStats!['totalGoals'] ?? 0}',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFFF59E0B),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        LinearProgressIndicator(
+                          value:
+                              (_monthlyStats!['totalGoals'] ?? 0) > 0
+                                  ? (_monthlyStats!['completedGoals'] ?? 0) /
+                                      (_monthlyStats!['totalGoals'] ?? 0)
+                                  : 0.0,
+                          backgroundColor: const Color(0xFFE2E8F0),
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            Color(0xFFF59E0B),
+                          ),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ] else ...[
+                        const Text(
+                          '0 / 0',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFFF59E0B),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Close button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0EA5E9),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Close',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -347,7 +616,7 @@ class _HomeViewState extends State<HomeView> {
             fixedAvatar.startsWith('https')) {
           return ClipOval(
             child: Image.network(
-              avatarPath,
+              fixedAvatar,
               width: 60,
               height: 60,
               fit: BoxFit.cover,
@@ -450,17 +719,19 @@ class _HomeViewState extends State<HomeView> {
                 const Color(0xFFF59E0B),
               ),
               const SizedBox(width: 12),
-              _buildStatChip(
-                Icons.flash_on_rounded,
-                '${stats.stars.daily}',
-                const Color(0xFF10B981),
-              ),
-              const SizedBox(width: 12),
-              _buildStatChip(
-                Icons.task_alt_rounded,
-                '${stats.tasks}',
-                const Color(0xFF8B5CF6),
-              ),
+              if (currentUser != null) ...[
+                _buildStatChip(
+                  Icons.monetization_on_rounded,
+                  '${currentUser.coins}',
+                  const Color(0xFF38BDF8),
+                ),
+                const SizedBox(width: 12),
+                _buildStatChip(
+                  Icons.emoji_events_rounded,
+                  'Rank ${currentUser.rankInFamily}',
+                  const Color(0xFF6366F1),
+                ),
+              ],
             ],
           ),
         ],
@@ -964,32 +1235,17 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Widget _buildProgressSection(BuildContext context, HomeLoaded state) {
-    final stats = state.homeData.familyStats;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Tap to view your progress',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1A202C),
-              ),
-            ),
-            // Show total stars and tasks (from new model)
-            Text(
-              '${stats.totalStars}/${stats.tasks} stars/tasks',
-              style: const TextStyle(
-                fontSize: 14,
-                color: Color(0xFF64748B),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
+        // Remove the Row with stats and just keep the title
+        const Text(
+          'Tap to view your progress',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A202C),
+          ),
         ),
         const SizedBox(height: 16),
         Row(
@@ -1000,21 +1256,12 @@ class _HomeViewState extends State<HomeView> {
                 icon: Icons.task_alt_rounded,
                 color: const Color(0xFF0EA5E9),
                 onTap:
-                    () =>
-                        context.read<HomeBloc>().add(NavigateToTasksProgress()),
+                    () => _showProgressDialog(context), // Show dialog instead
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _buildProgressCard(
-                title: 'Achievements',
-                icon: Icons.emoji_events_rounded,
-                color: const Color(0xFFF59E0B),
-                onTap:
-                    () => context.read<HomeBloc>().add(
-                      NavigateToAchievementsProgress(),
-                    ),
-              ),
+              child: _buildAchievementCard(), // Custom card for achievements
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -1032,6 +1279,118 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
+  Widget _buildAchievementCard() {
+    return Container(
+      height: 100,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (!_noAchievements && _lastUnlockedAchievement != null) ...[
+              // Show achievement photo if available
+              if (_lastUnlockedAchievement!['photo'] != null)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    _lastUnlockedAchievement!['photo'],
+                    width: 32,
+                    height: 32,
+                    fit: BoxFit.cover,
+                    errorBuilder:
+                        (context, error, stackTrace) => Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: const Color(
+                              0xFFF59E0B,
+                            ).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.emoji_events_rounded,
+                            color: Color(0xFFF59E0B),
+                            size: 16,
+                          ),
+                        ),
+                  ),
+                )
+              else
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF59E0B).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.emoji_events_rounded,
+                    color: Color(0xFFF59E0B),
+                    size: 16,
+                  ),
+                ),
+              const SizedBox(height: 6),
+              Text(
+                _lastUnlockedAchievement!['title'] ?? 'Achievement',
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF1A202C),
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ] else ...[
+              // Default achievement icon when no achievements
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF59E0B).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.emoji_events_rounded,
+                  color: Color(0xFFF59E0B),
+                  size: 16,
+                ),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Achievements',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF1A202C),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const Text(
+                'No unlocked yet',
+                style: TextStyle(fontSize: 8, color: Color(0xFF64748B)),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Add missing _buildProgressCard method
   Widget _buildProgressCard({
     required String title,
     required IconData icon,
@@ -1086,6 +1445,67 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
+  // Add missing _buildFeatureCard method
+  Widget _buildFeatureCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          height: 120,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: color, size: 20),
+              ),
+              const Spacer(),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF1A202C),
+                ),
+              ),
+              Text(
+                subtitle,
+                style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Add missing _buildAIAssistantSection method
   Widget _buildAIAssistantSection(BuildContext context) {
     return Container(
       width: double.infinity,
@@ -1175,65 +1595,6 @@ class _HomeViewState extends State<HomeView> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildFeatureCard({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          height: 120,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, color: color, size: 20),
-              ),
-              const Spacer(),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1A202C),
-                ),
-              ),
-              Text(
-                subtitle,
-                style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
