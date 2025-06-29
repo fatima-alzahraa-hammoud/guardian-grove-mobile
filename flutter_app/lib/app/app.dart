@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/presentation/pages/auth_wrapper.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../core/constants/app_constants.dart';
 import '../core/constants/app_colors.dart';
 import '../injection_container.dart' as di;
 import '../presentation/bloc/auth/auth_bloc.dart';
 import '../presentation/bloc/auth/auth_event.dart';
+import '../presentation/bloc/auth/auth_state.dart';
+import '../presentation/pages/splash/splash_screen.dart';
+import '../presentation/pages/auth/login_page.dart';
+import '../presentation/pages/main/main_app.dart';
 
 class GuardianGroveApp extends StatelessWidget {
   const GuardianGroveApp({super.key});
@@ -84,8 +87,44 @@ class GuardianGroveApp extends StatelessWidget {
             ),
           ),
         ),
-        home: const AuthWrapper(),
+        home: const SplashScreenWrapper(),
       ),
     );
+  }
+}
+
+class SplashScreenWrapper extends StatefulWidget {
+  const SplashScreenWrapper({super.key});
+
+  @override
+  State<SplashScreenWrapper> createState() => _SplashScreenWrapperState();
+}
+
+class _SplashScreenWrapperState extends State<SplashScreenWrapper> {
+  @override
+  void initState() {
+    super.initState();
+    _navigateAfterSplash();
+  }
+
+  Future<void> _navigateAfterSplash() async {
+    await Future.delayed(const Duration(seconds: 2)); // Splash duration
+    if (!mounted) return;
+    final authBloc = BlocProvider.of<AuthBloc>(context, listen: false);
+    final state = authBloc.state;
+    if (state is AuthAuthenticated || state is AuthNewRegistration) {
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const MainApp()));
+    } else {
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const LoginPage()));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const SplashScreen();
   }
 }
