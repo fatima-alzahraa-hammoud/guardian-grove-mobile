@@ -1,37 +1,76 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <!--
-      If you are serving your web app in a path other than the root, change the
-      href value below to reflect the base path you are serving from.
+    <meta charset="UTF-8" />
+    <base href="$FLUTTER_BASE_HREF" />
 
-      The path provided below has to start and end with a slash "/" in order for
-      it to work correctly.
+    <meta content="IE=Edge" http-equiv="X-UA-Compatible" />
+    <meta name="description" content="Guardian Grove – Family wellbeing companion." />
 
-      For more details:
-      * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+    <!-- iOS meta -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-title" content="Guardian Grove" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-      This is a placeholder for base href that will be replaced by the value of
-      the `--base-href` argument provided to `flutter build`.
-    -->
-    <base href="$FLUTTER_BASE_HREF">
-
-    <meta charset="UTF-8">
-    <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-    <meta name="description" content="A new Flutter project.">
-
-    <!-- iOS meta tags & icons -->
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="apple-mobile-web-app-title" content="flutter_app">
-    <link rel="apple-touch-icon" href="icons/GuardianGrove_logo_NoText.png">
-
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="icons/GuardianGrove_logo_NoText.png"/>
-
+    <!-- App title and icons -->
     <title>Guardian Grove</title>
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="icons/GuardianGrove_logo_NoText.png" />
+    <link rel="icon" type="image/png" href="icons/GuardianGrove_logo_NoText.png" />
+
+    <!-- Custom splash screen style matching Flutter SplashScreen -->
+    <style>
+      #splash-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: linear-gradient(to bottom right, #00BCD4, #2E86AB);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      #splash-screen img {
+        width: 200px;
+        height: 200px;
+        opacity: 0;
+        transform: scale(0.8);
+        animation: fadeScaleIn 0.8s ease-in-out forwards;
+      }
+
+      @keyframes fadeScaleIn {
+        from {
+          opacity: 0;
+          transform: scale(0.8);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+    </style>
   </head>
+
   <body>
+    <!-- HTML Splash Screen -->
+    <div id="splash-screen">
+      <img src="icons/GuardianGrove_logo_NoText.png" alt="Guardian Grove Logo" />
+    </div>
+
+    <!-- Flutter bootstrap script -->
+    <script src="flutter_bootstrap.js" async></script>
+
+    <!-- Remove splash screen after Flutter first frame -->
+    <script>
+      window.addEventListener('flutter-first-frame', function () {
+        const splash = document.getElementById('splash-screen');
+        if (splash) {
+          splash.style.opacity = '0';
+          splash.style.transition = 'opacity 0.3s ease-out';
+          setTimeout(() => splash.remove(), 300);
+        }
+      });
+    </script>
   </body>
 </html>
