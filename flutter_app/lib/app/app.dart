@@ -101,30 +101,40 @@ class SplashScreenWrapper extends StatefulWidget {
 }
 
 class _SplashScreenWrapperState extends State<SplashScreenWrapper> {
+  bool _navigated = false;
+
   @override
   void initState() {
     super.initState();
-    _navigateAfterSplash();
-  }
-
-  Future<void> _navigateAfterSplash() async {
-    await Future.delayed(const Duration(seconds: 2)); // Splash duration
-    if (!mounted) return;
-    final authBloc = BlocProvider.of<AuthBloc>(context, listen: false);
-    final state = authBloc.state;
-    if (state is AuthAuthenticated || state is AuthNewRegistration) {
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => const MainApp()));
-    } else {
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => const LoginPage()));
-    }
+    // No navigation here; handled in BlocListener
   }
 
   @override
   Widget build(BuildContext context) {
-    return const SplashScreen();
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) async {
+        if (state is AuthAuthenticated ||
+            state is AuthNewRegistration ||
+            state is AuthUnauthenticated) {
+          final navigator = Navigator.of(context);
+          await Future.delayed(const Duration(seconds: 2)); // Splash duration
+          if (!mounted) return;
+          // Use captured navigator
+          if (!_navigated) {
+            _navigated = true;
+            if (state is AuthAuthenticated || state is AuthNewRegistration) {
+              navigator.pushReplacement(
+                MaterialPageRoute(builder: (_) => const MainApp()),
+              );
+            } else if (state is AuthUnauthenticated) {
+              navigator.pushReplacement(
+                MaterialPageRoute(builder: (_) => const LoginPage()),
+              );
+            }
+          }
+        }
+      },
+      child: const SplashScreen(),
+    );
   }
 }
