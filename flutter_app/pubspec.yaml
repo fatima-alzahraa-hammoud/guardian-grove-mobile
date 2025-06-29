@@ -1,6 +1,6 @@
 name: flutter_app
 description: "A new Flutter project."
-publish_to: 'none'
+publish_to: "none"
 version: 0.1.0
 
 environment:
@@ -9,6 +9,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_bloc: ^9.1.1
+  equatable: ^2.0.5
+  dio: ^5.4.0
+  shared_preferences: ^2.2.2
+  get_it: ^7.6.9
+  curved_navigation_bar: ^1.0.3
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:
@@ -17,3 +24,11 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/images/logo.png
+    - assets/images/avatars/
+    - assets/images/avatars/parent/
+    - assets/images/avatars/child/
+    - assets/images/avatars/family/
