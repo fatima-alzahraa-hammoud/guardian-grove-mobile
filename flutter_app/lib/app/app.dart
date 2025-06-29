@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/presentation/pages/auth_wrapper.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../core/constants/app_constants.dart';
 import '../core/constants/app_colors.dart';
 import '../injection_container.dart' as di;
 import '../presentation/bloc/auth/auth_bloc.dart';
 import '../presentation/bloc/auth/auth_event.dart';
+import '../presentation/bloc/auth/auth_state.dart';
+import '../presentation/pages/splash/splash_screen.dart';
+import '../presentation/pages/auth/login_page.dart';
+import '../presentation/pages/main/main_app.dart';
 
 class GuardianGroveApp extends StatelessWidget {
   const GuardianGroveApp({super.key});
@@ -84,8 +87,54 @@ class GuardianGroveApp extends StatelessWidget {
             ),
           ),
         ),
-        home: const AuthWrapper(),
+        home: const SplashScreenWrapper(),
       ),
+    );
+  }
+}
+
+class SplashScreenWrapper extends StatefulWidget {
+  const SplashScreenWrapper({super.key});
+
+  @override
+  State<SplashScreenWrapper> createState() => _SplashScreenWrapperState();
+}
+
+class _SplashScreenWrapperState extends State<SplashScreenWrapper> {
+  bool _navigated = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // No navigation here; handled in BlocListener
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) async {
+        if (state is AuthAuthenticated ||
+            state is AuthNewRegistration ||
+            state is AuthUnauthenticated) {
+          final navigator = Navigator.of(context);
+          await Future.delayed(const Duration(seconds: 2)); // Splash duration
+          if (!mounted) return;
+          // Use captured navigator
+          if (!_navigated) {
+            _navigated = true;
+            if (state is AuthAuthenticated || state is AuthNewRegistration) {
+              navigator.pushReplacement(
+                MaterialPageRoute(builder: (_) => const MainApp()),
+              );
+            } else if (state is AuthUnauthenticated) {
+              navigator.pushReplacement(
+                MaterialPageRoute(builder: (_) => const LoginPage()),
+              );
+            }
+          }
+        }
+      },
+      child: const SplashScreen(),
     );
   }
 }
