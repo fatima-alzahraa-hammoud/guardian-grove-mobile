@@ -4,6 +4,7 @@
 
 [build.environment]
     FLUTTER_VERSION = "3.32.5"
+    NODE_VERSION = "18"
 
 [[plugins]]
     package = "netlify-plugin-flutter"
