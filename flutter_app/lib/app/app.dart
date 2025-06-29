@@ -54,7 +54,7 @@ class GuardianGroveApp extends StatelessWidget {
           ),
 
           // Card theme
-          cardTheme: CardTheme(
+          cardTheme: CardThemeData(
             color: AppColors.cardBackground,
             elevation: 8,
             shadowColor: AppColors.cardShadow,
