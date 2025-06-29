@@ -35,9 +35,12 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   List<FamilyMember> _familyMembers = [];
-  Map<String, dynamic>? _monthlyStats; // Add this
-  Map<String, dynamic>? _lastUnlockedAchievement; // Add this
-  bool _noAchievements = false; // Add this
+  Map<String, dynamic>? _monthlyStats;
+  Map<String, dynamic>? _lastUnlockedAchievement;
+  bool _noAchievements = false;
+  // Add these new fields for the scrollable quick actions
+  final PageController _quickActionsController = PageController();
+  int _currentQuickActionPage = 0;
 
   @override
   void initState() {
@@ -45,6 +48,12 @@ class _HomeViewState extends State<HomeView> {
     _loadFamilyMembersDirectly();
     _fetchMonthlyStats(); // Add this
     _fetchLastUnlockedAchievement(); // Add this
+  }
+
+  @override
+  void dispose() {
+    _quickActionsController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadFamilyMembersDirectly() async {
@@ -961,7 +970,55 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
+  // Replace your existing _buildQuickActionsGrid method with this updated version:
   Widget _buildQuickActionsGrid(BuildContext context) {
+    // Define quick action items split into multiple pages for scrolling
+    final List<List<Map<String, dynamic>>> quickActionPages = [
+      // Page 1
+      [
+        {
+          'icon': Icons.note_alt_rounded,
+          'title': 'Notes',
+          'color': const Color(0xFFFF6B9D),
+          'onTap': () => context.read<HomeBloc>().add(NavigateToNotes()),
+        },
+        {
+          'icon': Icons.favorite_rounded,
+          'title': 'Bonding',
+          'color': const Color(0xFF8B5CF6),
+          'onTap':
+              () => context.read<HomeBloc>().add(NavigateToBondingActivities()),
+        },
+        {
+          'icon': Icons.school_rounded,
+          'title': 'Learn',
+          'color': const Color(0xFF10B981),
+          'onTap': () => context.read<HomeBloc>().add(NavigateToExploreLearn()),
+        },
+      ],
+      // Page 2
+      [
+        {
+          'icon': Icons.store_rounded,
+          'title': 'Store',
+          'color': const Color(0xFF06B6D4),
+          'onTap': () => context.read<HomeBloc>().add(NavigateToStore()),
+        },
+        {
+          'icon': Icons.calendar_today_rounded,
+          'title': 'Calendar',
+          'color': const Color(0xFFF59E0B),
+          'onTap': () => context.read<HomeBloc>().add(NavigateToCalendar()),
+        },
+        {
+          'icon': Icons.sports_esports_rounded,
+          'title': 'Games',
+          'color': const Color(0xFFE11D48),
+          'onTap': () => context.read<HomeBloc>().add(NavigateToFunZone()),
+        },
+      ],
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -974,49 +1031,68 @@ class _HomeViewState extends State<HomeView> {
           ),
         ),
         const SizedBox(height: 16),
+        // Scrollable PageView for quick actions
+        SizedBox(
+          height: 80,
+          child: PageView.builder(
+            controller: _quickActionsController,
+            onPageChanged: (index) {
+              setState(() {
+                _currentQuickActionPage = index;
+              });
+            },
+            itemCount: quickActionPages.length,
+            itemBuilder: (context, pageIndex) {
+              return Row(
+                children: [
+                  // Build each action in the current page
+                  ...quickActionPages[pageIndex].asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final action = entry.value;
+                    final isLast =
+                        index == quickActionPages[pageIndex].length - 1;
+                    return Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(right: isLast ? 0 : 12),
+                        child: _buildQuickActionCard(
+                          icon: action['icon'],
+                          title: action['title'],
+                          color: action['color'],
+                          onTap: action['onTap'],
+                        ),
+                      ),
+                    );
+                  }),
+                  // Add empty expanded widgets if page has less than 3 items
+                  ...List.generate(
+                    3 - quickActionPages[pageIndex].length,
+                    (index) => const Expanded(child: SizedBox()),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Dot indicators (will show since we have 2 pages)
         Row(
-          children: [
-            Expanded(
-              child: _buildQuickActionCard(
-                icon: Icons.note_alt_rounded,
-                title: 'Notes',
-                color: const Color(0xFFFF6B9D),
-                onTap: () => context.read<HomeBloc>().add(NavigateToNotes()),
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(
+            quickActionPages.length,
+            (index) => AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              width: _currentQuickActionPage == index ? 12 : 8,
+              height: 8,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4),
+                color:
+                    _currentQuickActionPage == index
+                        ? const Color(0xFF0EA5E9)
+                        : const Color(0xFFE2E8F0),
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildQuickActionCard(
-                icon: Icons.favorite_rounded,
-                title: 'Bonding',
-                color: const Color(0xFF8B5CF6),
-                onTap:
-                    () => context.read<HomeBloc>().add(
-                      NavigateToBondingActivities(),
-                    ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildQuickActionCard(
-                icon: Icons.school_rounded,
-                title: 'Learn',
-                color: const Color(0xFF10B981),
-                onTap:
-                    () =>
-                        context.read<HomeBloc>().add(NavigateToExploreLearn()),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildQuickActionCard(
-                icon: Icons.calendar_today_rounded,
-                title: 'Calendar',
-                color: const Color(0xFFF59E0B),
-                onTap: () => context.read<HomeBloc>().add(NavigateToCalendar()),
-              ),
-            ),
-          ],
+          ),
         ),
       ],
     );
