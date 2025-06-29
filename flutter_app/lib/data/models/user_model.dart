@@ -88,6 +88,47 @@ class UserModel extends Equatable {
     };
   }
 
+  // Add a copyWith method for updating fields
+  UserModel copyWith({
+    String? id,
+    String? name,
+    String? email,
+    DateTime? birthday,
+    String? dailyMessage,
+    String? gender,
+    String? role,
+    String? avatar,
+    List<String>? interests,
+    DateTime? memberSince,
+    String? currentLocation,
+    int? stars,
+    int? coins,
+    int? nbOfTasksCompleted,
+    int? rankInFamily,
+    String? familyId,
+    bool? isTempPassword,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      birthday: birthday ?? this.birthday,
+      dailyMessage: dailyMessage ?? this.dailyMessage,
+      gender: gender ?? this.gender,
+      role: role ?? this.role,
+      avatar: avatar ?? this.avatar,
+      interests: interests ?? this.interests,
+      memberSince: memberSince ?? this.memberSince,
+      currentLocation: currentLocation ?? this.currentLocation,
+      stars: stars ?? this.stars,
+      coins: coins ?? this.coins,
+      nbOfTasksCompleted: nbOfTasksCompleted ?? this.nbOfTasksCompleted,
+      rankInFamily: rankInFamily ?? this.rankInFamily,
+      familyId: familyId ?? this.familyId,
+      isTempPassword: isTempPassword ?? this.isTempPassword,
+    );
+  }
+
   @override
   List<Object?> get props => [
     id,
