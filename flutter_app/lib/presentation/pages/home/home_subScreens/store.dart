@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/core/network/store_api_service.dart';
 import 'package:flutter_app/data/models/store_model.dart';
 import 'package:flutter_app/presentation/bloc/store_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
