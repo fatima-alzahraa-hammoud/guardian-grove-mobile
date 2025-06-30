@@ -35,10 +35,6 @@ class _StoreViewState extends State<StoreView> {
   @override
   void initState() {
     super.initState();
-    // Debug API on screen load
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _testStoreAPI();
-    });
   }
 
   @override
@@ -64,12 +60,6 @@ class _StoreViewState extends State<StoreView> {
           ),
         ),
         actions: [
-          // Debug button
-          IconButton(
-            onPressed: () => _debugStoreState(context),
-            icon: const Icon(Icons.bug_report, color: Color(0xFF1A202C)),
-            tooltip: 'Debug Store',
-          ),
           // Refresh button
           IconButton(
             onPressed: () => context.read<StoreBloc>().add(RefreshStoreData()),
@@ -86,8 +76,6 @@ class _StoreViewState extends State<StoreView> {
           }
         },
         builder: (context, state) {
-          debugPrint('🏪 Store State: ${state.runtimeType}');
-
           if (state is StoreLoading) {
             return _buildLoadingState(state.message);
           } else if (state is StoreLoaded) {
@@ -968,126 +956,5 @@ class _StoreViewState extends State<StoreView> {
         duration: const Duration(seconds: 4),
       ),
     );
-  }
-
-  // Debug methods
-  void _debugStoreState(BuildContext context) {
-    final bloc = context.read<StoreBloc>();
-    final state = bloc.state;
-
-    debugPrint('\n🔍 === STORE DEBUG ===');
-    debugPrint('Current state: ${state.runtimeType}');
-
-    if (state is StoreLoaded) {
-      debugPrint('📊 Store Stats:');
-      debugPrint('  All items: ${state.allItems.length}');
-      debugPrint('  Filtered items: ${state.filteredItems.length}');
-      debugPrint('  User coins: ${state.userCoins}');
-      debugPrint('  Purchased IDs: ${state.purchasedItemIds}');
-      debugPrint('  Current filter: ${state.currentFilter.displayName}');
-
-      debugPrint('\n🛍️ All Items:');
-      for (final item in state.allItems) {
-        debugPrint(
-          '  - ${item.name} (${item.type}) - ${item.price} coins - Purchased: ${item.isPurchased}',
-        );
-      }
-
-      debugPrint('\n🔍 Filtered Items:');
-      for (final item in state.filteredItems) {
-        debugPrint('  - ${item.name} (${item.type}) - ${item.price} coins');
-      }
-
-      // Test purchase filter specifically
-      if (state.currentFilter == StoreFilter.purchased) {
-        debugPrint('\n🛒 Purchase Filter Test:');
-        final purchasedItems =
-            state.allItems
-                .where(
-                  (item) =>
-                      item.isPurchased ||
-                      state.purchasedItemIds.contains(item.id),
-                )
-                .toList();
-        debugPrint('  Manual filter result: ${purchasedItems.length} items');
-        for (final item in purchasedItems) {
-          debugPrint(
-            '    - ${item.name} (isPurchased: ${item.isPurchased}, inList: ${state.purchasedItemIds.contains(item.id)})',
-          );
-        }
-      }
-    } else if (state is StoreError) {
-      debugPrint('❌ Error: ${state.message}');
-      debugPrint('❌ Type: ${state.type}');
-    } else if (state is StoreLoading) {
-      debugPrint('⏳ Loading: ${state.message}');
-    }
-
-    debugPrint('=== END DEBUG ===\n');
-
-    // Show debug info in UI
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Store Debug Info'),
-            content: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('State: ${state.runtimeType}'),
-                  if (state is StoreLoaded) ...[
-                    Text('Items: ${state.allItems.length}'),
-                    Text('Filtered: ${state.filteredItems.length}'),
-                    Text('Coins: ${state.userCoins}'),
-                    Text('Filter: ${state.currentFilter.displayName}'),
-                    Text('Purchased IDs: ${state.purchasedItemIds.join(", ")}'),
-                  ],
-                  if (state is StoreError) ...[
-                    Text('Error: ${state.message}'),
-                    Text('Type: ${state.type}'),
-                  ],
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Close'),
-              ),
-            ],
-          ),
-    );
-  }
-
-  void _testStoreAPI() async {
-    debugPrint('🧪 === MANUAL STORE API TEST ===');
-
-    final storeService = StoreApiService();
-    storeService.init();
-
-    try {
-      // Test connection
-      final isConnected = await storeService.testConnection();
-      debugPrint('Connection test: ${isConnected ? '✅' : '❌'}');
-
-      // Test each endpoint
-      final items = await storeService.getStoreItems();
-      debugPrint('Items test: ✅ ${items.length} items');
-      for (final item in items) {
-        debugPrint('  - ${item.name} (${item.type}) - ${item.price} coins');
-      }
-
-      final coins = await storeService.getUserCoins();
-      debugPrint('Coins test: ✅ $coins coins');
-
-      final purchased = await storeService.getPurchasedItems();
-      debugPrint('Purchased test: ✅ ${purchased.length} items: $purchased');
-    } catch (e) {
-      debugPrint('❌ API test failed: $e');
-    }
-
-    debugPrint('🧪 === END API TEST ===');
   }
 }
