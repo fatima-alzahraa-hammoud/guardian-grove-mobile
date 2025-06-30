@@ -387,7 +387,7 @@ class _StoreViewState extends State<StoreView> {
         crossAxisCount: crossAxisCount,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
-        childAspectRatio: isTablet ? 0.8 : 0.75, // Better balanced proportions
+        childAspectRatio: isTablet ? 0.75 : 0.7, // Make cards taller
       ),
       delegate: SliverChildBuilderDelegate((context, index) {
         final item = state.filteredItems[index];
@@ -420,10 +420,9 @@ class _StoreViewState extends State<StoreView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Image section - OPTIMIZED HEIGHT
+          // Image section - LESS SPACE
           Expanded(
-            flex:
-                5, // Using flex instead of fixed height for better proportions
+            flex: 4, // Changed from 5 to 4 (less space for image)
             child: Container(
               decoration: BoxDecoration(
                 color: item.color.withValues(alpha: 0.1),
@@ -515,9 +514,9 @@ class _StoreViewState extends State<StoreView> {
             ),
           ),
 
-          // Content section - COMPACT BUT READABLE
+          // Content section - MORE SPACE
           Expanded(
-            flex: 4, // Balanced proportion with image
+            flex: 5, // Changed from 4 to 5 (more space for content)
             child: Padding(
               padding: EdgeInsets.all(isTablet ? 16 : 12),
               child: Column(
@@ -646,7 +645,7 @@ class _StoreViewState extends State<StoreView> {
     );
   }
 
-  // PURCHASE CONFIRMATION DIALOG (keep only this new version)
+  // PURCHASE CONFIRMATION DIALOG
   void _showPurchaseDialog(BuildContext context, StoreItem item) {
     showDialog(
       context: context,
