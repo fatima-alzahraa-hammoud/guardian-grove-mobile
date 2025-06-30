@@ -13,6 +13,7 @@ import 'home_subScreens/notes.dart';
 import 'package:dio/dio.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../data/models/family_model.dart' show FamilyMember;
+import 'home_subScreens/store.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -972,7 +973,7 @@ class _HomeViewState extends State<HomeView> {
 
   // Replace your existing _buildQuickActionsGrid method with this updated version:
   Widget _buildQuickActionsGrid(BuildContext context) {
-    // Define quick action items split into multiple pages for scrolling
+    // Define quick action items with direct navigation
     final List<List<Map<String, dynamic>>> quickActionPages = [
       // Page 1
       [
@@ -980,20 +981,33 @@ class _HomeViewState extends State<HomeView> {
           'icon': Icons.note_alt_rounded,
           'title': 'Notes',
           'color': const Color(0xFFFF6B9D),
-          'onTap': () => context.read<HomeBloc>().add(NavigateToNotes()),
+          'onTap': () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const NotesScreen()),
+            );
+          },
         },
         {
           'icon': Icons.favorite_rounded,
           'title': 'Bonding',
           'color': const Color(0xFF8B5CF6),
-          'onTap':
-              () => context.read<HomeBloc>().add(NavigateToBondingActivities()),
+          'onTap': () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Bonding Activities - Coming Soon!'),
+              ),
+            );
+          },
         },
         {
           'icon': Icons.school_rounded,
           'title': 'Learn',
           'color': const Color(0xFF10B981),
-          'onTap': () => context.read<HomeBloc>().add(NavigateToExploreLearn()),
+          'onTap': () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Learning Section - Coming Soon!')),
+            );
+          },
         },
       ],
       // Page 2
@@ -1002,19 +1016,31 @@ class _HomeViewState extends State<HomeView> {
           'icon': Icons.store_rounded,
           'title': 'Store',
           'color': const Color(0xFF06B6D4),
-          'onTap': () => context.read<HomeBloc>().add(NavigateToStore()),
+          'onTap': () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const StoreScreen()),
+            );
+          },
         },
         {
           'icon': Icons.calendar_today_rounded,
           'title': 'Calendar',
           'color': const Color(0xFFF59E0B),
-          'onTap': () => context.read<HomeBloc>().add(NavigateToCalendar()),
+          'onTap': () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Calendar - Coming Soon!')),
+            );
+          },
         },
         {
           'icon': Icons.sports_esports_rounded,
           'title': 'Games',
           'color': const Color(0xFFE11D48),
-          'onTap': () => context.read<HomeBloc>().add(NavigateToFunZone()),
+          'onTap': () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Games - Coming Soon!')),
+            );
+          },
         },
       ],
     ];
@@ -1074,7 +1100,7 @@ class _HomeViewState extends State<HomeView> {
           ),
         ),
         const SizedBox(height: 12),
-        // Dot indicators (will show since we have 2 pages)
+        // Dot indicators
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(

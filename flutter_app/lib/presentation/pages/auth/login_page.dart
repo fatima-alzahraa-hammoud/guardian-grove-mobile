@@ -6,7 +6,6 @@ import '../../bloc/auth/auth_state.dart';
 import '../../../data/models/user_model.dart';
 import '../../widgets/password_change_dialog.dart';
 import 'register_page.dart';
-import '../main/main_app.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -209,14 +208,6 @@ class _LoginPageState extends State<LoginPage> {
                     margin: const EdgeInsets.all(16),
                   ),
                 );
-                final navigator = Navigator.of(context);
-                Future.delayed(const Duration(milliseconds: 500), () {
-                  if (!mounted) return;
-                  navigator.pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const MainApp()),
-                    (route) => false,
-                  );
-                });
               }
             } else if (state is AuthLoading) {
               debugPrint('⏳ Authentication in progress');
