@@ -64,9 +64,7 @@ class FamilyApiService {
 
       // Method 1: Try GET /family/FamilyMembers?familyId=... (what backend expects)
       try {
-        debugPrint(
-          '🔄 FamilyApiService: Trying GET /family/FamilyMembers?familyId=...',
-        );
+        debugPrint('🔄 FamilyApiService: Trying GET /family/FamilyMembers?familyId=...');
         final membersResponse = await _dio.get(
           '/family/FamilyMembers',
           queryParameters: {'familyId': familyId},
@@ -92,9 +90,7 @@ class FamilyApiService {
 
       // Method 2: POST to /family/FamilyMembers (fallback)
       try {
-        debugPrint(
-          '🔄 FamilyApiService: Trying POST /family/FamilyMembers as fallback...',
-        );
+        debugPrint('🔄 FamilyApiService: Trying POST /family/FamilyMembers as fallback...');
         final membersResponse = await _dio.post(
           '/family/FamilyMembers',
           data: {'familyId': familyId},
@@ -159,34 +155,21 @@ class FamilyApiService {
 
       debugPrint('👤 FamilyApiService: Processing $name');
       debugPrint('   Role: $role');
-      debugPrint(
-        '   Avatar: ${avatar.isEmpty ? '❌ MISSING' : '✅ $avatar'}',
-      );
-      debugPrint(
-        '   Gender: ${gender.isEmpty ? '❌ MISSING' : '✅ $gender'}',
-      );
+      debugPrint('   Avatar: ${avatar.isEmpty ? '❌ MISSING' : '✅ $avatar'}');
+      debugPrint('   Gender: ${gender.isEmpty ? '❌ MISSING' : '✅ $gender'}');
 
       return FamilyMember(
-        id: memberData['_id']?.toString() ??
-            memberData['id']?.toString() ??
-            DateTime.now().millisecondsSinceEpoch.toString(),
+        id: memberData['_id']?.toString() ?? memberData['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
         name: name,
         role: role,
         gender: gender,
         avatar: avatar,
-        birthday: memberData['birthday'] != null
-            ? DateTime.tryParse(memberData['birthday'].toString())
-            : null,
-        interests: memberData['interests'] != null &&
-                memberData['interests'] is List
-            ? List<String>.from(memberData['interests'])
-            : <String>[],
+        birthday: memberData['birthday'] != null ? DateTime.tryParse(memberData['birthday'].toString()) : null,
+        interests: memberData['interests'] != null && memberData['interests'] is List ? List<String>.from(memberData['interests']) : <String>[],
       );
     }).toList();
 
-    debugPrint(
-      '✅ FamilyApiService: Successfully processed ${members.length} members',
-    );
+    debugPrint('✅ FamilyApiService: Successfully processed ${members.length} members');
     return members;
   }
 
@@ -252,13 +235,9 @@ class FamilyApiService {
     final service = FamilyApiService();
     service.init();
     final members = await service.getFamilyMembers();
-    debugPrint(
-      '🔎 [FamilyApiService.fetchFamilyMembersWithDebug] Members fetched: ${members.length}',
-    );
+    debugPrint('🔎 [FamilyApiService.fetchFamilyMembersWithDebug] Members fetched: ${members.length}');
     for (final member in members) {
-      debugPrint(
-        '   - ${member.name} (ID: ${member.id}) | Avatar: ${member.avatar.isNotEmpty ? member.avatar : '❌'} | Gender: ${member.gender.isNotEmpty ? member.gender : '❌'} | Role: ${member.role}',
-      );
+      debugPrint('   - ${member.name} (ID: ${member.id}) | Avatar: ${member.avatar.isNotEmpty ? member.avatar : '❌'} | Gender: ${member.gender.isNotEmpty ? member.gender : '❌'} | Role: ${member.role}');
     }
     return members;
   }
@@ -327,20 +306,19 @@ class FamilyApiService {
     }
   }
 
-  /// Update user profile - Enhanced to match backend API
+  /// FIXED: Update user profile - Enhanced to match backend API
   Future<bool> updateUserProfile(Map<String, dynamic> userData) async {
     try {
       debugPrint('📝 FamilyApiService: Updating user profile...');
       debugPrint('📄 Data being sent: $userData');
       
-      // Your backend route is PUT /users/ (not /users/editUserProfile)
-      final response = await _dio.put('/users', data: userData);
+      // Your backend expects PUT /users/ (not /users/editUserProfile)
+      final response = await _dio.put('/users/', data: userData);
       
       debugPrint('📄 Response status: ${response.statusCode}');
       debugPrint('📄 Response data: ${response.data}');
       
       if (response.statusCode == 200) {
-        // Check for success message or user data in response
         final responseData = response.data;
         if (responseData['message'] != null || responseData['user'] != null) {
           debugPrint('✅ FamilyApiService: User profile updated successfully');
@@ -358,7 +336,6 @@ class FamilyApiService {
         debugPrint('❌ Request data: ${e.requestOptions.data}');
         debugPrint('❌ Request headers: ${e.requestOptions.headers}');
         
-        // Provide more specific error messages based on status code
         if (e.response?.statusCode == 401) {
           throw Exception('Unauthorized: Please log in again');
         } else if (e.response?.statusCode == 403) {
@@ -376,18 +353,18 @@ class FamilyApiService {
     }
   }
 
-  /// Update family details (name, email, avatar) - Enhanced to match backend API
+  /// FIXED: Update family details (name, email, avatar) - Enhanced to match backend API
   Future<bool> updateFamilyDetails(Map<String, dynamic> familyData) async {
     try {
       debugPrint('📝 FamilyApiService: Updating family details...');
       debugPrint('📄 Data being sent: $familyData');
-      
-      // Your backend expects PUT /family/updateFamily
-      final response = await _dio.put('/family/updateFamily', data: familyData);
-      
+
+      // Your backend expects PUT /family/ (not /family/updateFamily)
+      final response = await _dio.put('/family/', data: familyData);
+
       debugPrint('📄 Response status: ${response.statusCode}');
       debugPrint('📄 Response data: ${response.data}');
-      
+
       if (response.statusCode == 200) {
         // Check for success message or family data in response
         final responseData = response.data;
@@ -396,7 +373,7 @@ class FamilyApiService {
           return true;
         }
       }
-      
+
       debugPrint('❌ FamilyApiService: Unexpected response format: ${response.data}');
       return false;
     } catch (e) {
@@ -406,7 +383,7 @@ class FamilyApiService {
         debugPrint('❌ Status code: ${e.response?.statusCode}');
         debugPrint('❌ Request data: ${e.requestOptions.data}');
         debugPrint('❌ Request headers: ${e.requestOptions.headers}');
-        
+
         // Provide more specific error messages based on status code
         if (e.response?.statusCode == 401) {
           throw Exception('Unauthorized: Please log in again');
@@ -435,11 +412,10 @@ class FamilyApiService {
     try {
       debugPrint('🗑️ FamilyApiService: Deleting user...');
       final response = await _dio.delete(
-        '/users/deleteUser',
+        '/users/',
         data: userId != null ? {'userId': userId} : {},
       );
-      if (response.statusCode == 200 &&
-          (response.data['message'] != null || response.data['user'] != null)) {
+      if (response.statusCode == 200 && (response.data['message'] != null || response.data['user'] != null)) {
         debugPrint('✅ FamilyApiService: User deleted');
         return true;
       } else {
@@ -457,11 +433,10 @@ class FamilyApiService {
     try {
       debugPrint('🗑️ FamilyApiService: Deleting family...');
       final response = await _dio.delete(
-        '/family/deleteFamily',
+        '/family/',
         data: {'familyId': familyId},
       );
-      if (response.statusCode == 200 &&
-          (response.data['message'] != null)) {
+      if (response.statusCode == 200 && (response.data['message'] != null)) {
         debugPrint('✅ FamilyApiService: Family deleted');
         return true;
       } else {
@@ -498,7 +473,7 @@ class FamilyApiService {
     try {
       final userData = await getCurrentUser();
       if (userData == null) return false;
-      
+
       final role = userData['role']?.toString().toLowerCase() ?? '';
       return role == 'parent' || role == 'admin';
     } catch (e) {

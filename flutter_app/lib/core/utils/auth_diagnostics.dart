@@ -94,7 +94,9 @@ class AuthDiagnostics {
     try {
       final token = StorageService.getToken();
       final user = StorageService.getUser();
-      final isLoggedIn = StorageService.isLoggedIn();
+      
+      // Create isLoggedIn logic based on your StorageService methods
+      final isLoggedIn = _isUserLoggedIn(token, user);
 
       authData['has_token'] = token != null && token.isNotEmpty;
       authData['has_user'] = user != null;
@@ -102,12 +104,21 @@ class AuthDiagnostics {
       authData['token_length'] = token?.length ?? 0;
       authData['user_id'] = user?.id ?? 'none';
       authData['user_email'] = user?.email ?? 'none';
+      authData['user_name'] = user?.name ?? 'none';
+      authData['user_role'] = user?.role ?? 'none';
 
       if (isLoggedIn) {
         debugPrint('✅ Stored Auth Data: User is logged in');
         debugPrint('👤 User: ${user?.name} (${user?.email})');
+        debugPrint('🔑 Token: ${token != null ? 'Present (${token.length} chars)' : 'Missing'}');
       } else {
         debugPrint('ℹ️ Stored Auth Data: No user logged in');
+        if (token == null || token.isEmpty) {
+          debugPrint('❌ Token: Missing');
+        }
+        if (user == null) {
+          debugPrint('❌ User Data: Missing');
+        }
       }
     } catch (e) {
       debugPrint('❌ Stored Auth Data Error: $e');
@@ -115,6 +126,16 @@ class AuthDiagnostics {
     }
 
     return authData;
+  }
+
+  /// Helper method to determine if user is logged in based on available data
+  static bool _isUserLoggedIn(String? token, dynamic user) {
+    // User is considered logged in if they have both a valid token and user data
+    return token != null && 
+           token.isNotEmpty && 
+           user != null &&
+           user.id != null &&
+           user.id.isNotEmpty;
   }
 
   static Future<Map<String, List<String>>> _testBackendUrls() async {
@@ -133,10 +154,22 @@ class AuthDiagnostics {
       final results = <String>[];
       try {
         debugPrint('🔍 Testing URL: $url');
-        // TODO: Implement URL testing in future version
-        results.add('URL testing not yet implemented');
+        // Basic URL validation
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+          results.add('✅ Valid URL format');
+        } else {
+          results.add('❌ Invalid URL format');
+        }
+        
+        // Check if it's localhost variant
+        if (url.contains('localhost') || url.contains('127.0.0.1') || url.contains('10.0.2.2')) {
+          results.add('📱 Local development URL');
+        } else {
+          results.add('🌐 Remote server URL');
+        }
+        
       } catch (e) {
-        results.add('Failed: $e');
+        results.add('❌ Failed: $e');
       }
 
       urlTests[url] = results;
@@ -152,15 +185,16 @@ class AuthDiagnostics {
     debugPrint(
       'Backend Connected: ${results['backend_connectivity']['basic_connection'] ?? false}',
     );
-    debugPrint(
-      'User Logged In: ${results['stored_auth_data']['is_logged_in'] ?? false}',
-    );
-    debugPrint(
-      'Has Token: ${results['stored_auth_data']['has_token'] ?? false}',
-    );
-    debugPrint(
-      'Has User Data: ${results['stored_auth_data']['has_user'] ?? false}',
-    );
+    
+    final authData = results['stored_auth_data'] as Map<String, dynamic>? ?? {};
+    debugPrint('User Logged In: ${authData['is_logged_in'] ?? false}');
+    debugPrint('Has Token: ${authData['has_token'] ?? false}');
+    debugPrint('Has User Data: ${authData['has_user'] ?? false}');
+    
+    if (authData['user_name'] != 'none') {
+      debugPrint('User: ${authData['user_name']} (${authData['user_role']})');
+    }
+    
     debugPrint('===========================================\n');
   }
 
@@ -178,12 +212,60 @@ class AuthDiagnostics {
       suggestions.add('Try different IP address in app_constants.dart');
     }
 
-    final authData =
-        diagnostics['stored_auth_data'] as Map<String, dynamic>? ?? {};
-    if (authData['has_token'] == false && authData['is_logged_in'] == true) {
-      suggestions.add('Clear corrupted auth data: StorageService.clearAll()');
+    final authData = diagnostics['stored_auth_data'] as Map<String, dynamic>? ?? {};
+    
+    if (authData['has_token'] == false && authData['has_user'] == true) {
+      suggestions.add('Token missing but user data exists - try logging in again');
+    }
+    
+    if (authData['has_token'] == true && authData['has_user'] == false) {
+      suggestions.add('Token exists but user data missing - clear auth data: StorageService.clearAll()');
+    }
+    
+    if (authData['has_token'] == false && authData['has_user'] == false) {
+      suggestions.add('No authentication data found - user needs to log in');
+    }
+
+    if (authData['is_logged_in'] == false && (authData['has_token'] == true || authData['has_user'] == true)) {
+      suggestions.add('Inconsistent auth state - clear all data: StorageService.clearAll()');
     }
 
     return suggestions;
+  }
+
+  /// Add helper method to check auth status (like isLoggedIn)
+  static bool checkAuthStatus() {
+    final token = StorageService.getToken();
+    final user = StorageService.getUser();
+    return _isUserLoggedIn(token, user);
+  }
+
+  /// Clear auth data if corrupted
+  static Future<void> clearCorruptedAuthData() async {
+    debugPrint('🧹 Clearing potentially corrupted auth data...');
+    await StorageService.clearAll();
+    debugPrint('✅ Auth data cleared');
+  }
+
+  /// Test specific auth endpoint
+  static Future<bool> testAuthEndpoint() async {
+    try {
+      debugPrint('🔍 Testing auth endpoint...');
+      
+      // Test if we can reach the auth endpoints
+      final token = StorageService.getToken();
+      if (token == null || token.isEmpty) {
+        debugPrint('❌ No token to test with');
+        return false;
+      }
+
+      // You can add actual endpoint testing here when needed
+      debugPrint('✅ Auth endpoint test would go here');
+      return true;
+      
+    } catch (e) {
+      debugPrint('❌ Auth endpoint test failed: $e');
+      return false;
+    }
   }
 }

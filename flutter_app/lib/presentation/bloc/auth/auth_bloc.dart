@@ -66,7 +66,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       debugPrint('🔑 Token received: ${response.token.substring(0, 10)}...');
 
       // Save token and user data
-      await StorageService.saveToken(response.token);
+      await StorageService.setToken(response.token);
       await StorageService.saveUser(response.user);
 
       debugPrint('💾 User data saved to storage');
@@ -108,7 +108,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       debugPrint('🔑 Token received: ${response.token.substring(0, 10)}...');
 
       // Save token and user data
-      await StorageService.saveToken(response.token);
+      await StorageService.setToken(response.token);
       await StorageService.saveUser(response.user);
 
       debugPrint('💾 User data saved to storage');

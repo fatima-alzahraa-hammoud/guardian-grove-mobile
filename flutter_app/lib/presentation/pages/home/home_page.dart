@@ -14,6 +14,7 @@ import 'package:dio/dio.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../data/models/family_model.dart' show FamilyMember;
 import 'home_subScreens/store.dart';
+import 'home_subScreens/goals_adventure_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -1221,8 +1222,14 @@ class _HomeViewState extends State<HomeView> {
       subtitle: 'Goals and adventures',
       buttonText: 'Start Adventures',
       icon: Icons.flag_rounded,
-      color: const Color(0xFF0EA5E9),
-      onTap: () => context.read<HomeBloc>().add(NavigateToGoalsAdventures()),
+      color: const Color(0xFF10B981),
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const GoalsAdventuresScreen(),
+          ),
+        );
+      },
     );
   }
 
