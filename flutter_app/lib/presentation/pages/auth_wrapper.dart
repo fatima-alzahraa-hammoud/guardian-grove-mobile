@@ -12,9 +12,15 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
+        debugPrint('🔄 AuthWrapper state: ${state.runtimeType}');
+
         if (state is AuthAuthenticated) {
+          debugPrint('✅ AuthWrapper: User authenticated, showing MainApp');
           return const MainApp();
         } else if (state is AuthNewRegistration) {
+          debugPrint(
+            '📝 AuthWrapper: New registration, showing MainApp with dialog',
+          );
           // Show the add member dialog for new registrations
           WidgetsBinding.instance.addPostFrameCallback((_) {
             showDialog(
@@ -25,6 +31,7 @@ class AuthWrapper extends StatelessWidget {
           });
           return const MainApp();
         } else if (state is AuthLoading) {
+          debugPrint('⏳ AuthWrapper: Loading authentication...');
           return const Scaffold(
             backgroundColor: Color(0xFFF8F9FE),
             body: Center(
@@ -32,6 +39,9 @@ class AuthWrapper extends StatelessWidget {
             ),
           );
         } else {
+          debugPrint(
+            '🚪 AuthWrapper: User not authenticated, showing LoginPage',
+          );
           return const LoginPage();
         }
       },

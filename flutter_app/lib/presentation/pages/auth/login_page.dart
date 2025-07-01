@@ -177,8 +177,12 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                 );
               } else {
-                // Normal login flow - go to main app
-                debugPrint('✅ Normal login, proceeding to main app');
+                // Normal login flow - navigation will happen automatically via AuthWrapper
+                debugPrint(
+                  '✅ Normal login, navigation will happen automatically',
+                );
+
+                // Show brief success message - AuthWrapper will handle navigation
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: const Row(
@@ -190,7 +194,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         SizedBox(width: 12),
                         Text(
-                          'Welcome back! Login successful 🎉',
+                          'Login successful! Redirecting... 🎉',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 14,
@@ -204,7 +208,7 @@ class _LoginPageState extends State<LoginPage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    duration: const Duration(seconds: 2),
+                    duration: const Duration(milliseconds: 1000),
                     margin: const EdgeInsets.all(16),
                   ),
                 );

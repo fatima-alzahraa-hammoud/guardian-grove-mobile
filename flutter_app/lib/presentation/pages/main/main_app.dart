@@ -18,6 +18,7 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('🏠 MainApp: Building main app screen');
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => BottomNavCubit()),
