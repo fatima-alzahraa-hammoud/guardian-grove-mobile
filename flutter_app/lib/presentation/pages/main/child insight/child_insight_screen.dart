@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/data/models/leaderboard_model.dart';
-
+import 'package:flutter_app/data/models/family_model.dart' show FamilyMember;
 
 class ChildInsightScreen extends StatelessWidget {
-  final FamilyMember childMember;
+  final FamilyMember child;
 
-  const ChildInsightScreen({
-    super.key,
-    required this.childMember,
-  });
+  const ChildInsightScreen({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +15,7 @@ class ChildInsightScreen extends StatelessWidget {
           children: [
             // Header
             _buildHeader(context),
-            
+
             // Content
             Expanded(
               child: SingleChildScrollView(
@@ -29,19 +25,19 @@ class ChildInsightScreen extends StatelessWidget {
                     // Child Profile Card
                     _buildChildProfileCard(),
                     const SizedBox(height: 16),
-                    
+
                     // Stats Grid
                     _buildStatsGrid(),
                     const SizedBox(height: 16),
-                    
+
                     // Activity Progress
                     _buildActivityProgressCard(),
                     const SizedBox(height: 16),
-                    
+
                     // Recent Activities
                     _buildRecentActivitiesCard(),
                     const SizedBox(height: 16),
-                    
+
                     // Achievements
                     _buildAchievementsCard(),
                     const SizedBox(height: 24),
@@ -88,7 +84,7 @@ class ChildInsightScreen extends StatelessWidget {
           Column(
             children: [
               Text(
-                '${childMember.name}\'s Insights',
+                '${child.name}\'s Insights',
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -97,10 +93,7 @@ class ChildInsightScreen extends StatelessWidget {
               ),
               const Text(
                 'Child Progress Overview',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF64748B),
-                ),
+                style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
               ),
             ],
           ),
@@ -146,25 +139,27 @@ class ChildInsightScreen extends StatelessWidget {
                 ),
               ],
             ),
-            child: childMember.avatar.isNotEmpty
-                ? ClipOval(
-                    child: Image.network(
-                      childMember.avatar,
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => const Icon(
-                        Icons.child_care_rounded,
-                        color: Colors.white,
-                        size: 32,
+            child:
+                child.avatar.isNotEmpty
+                    ? ClipOval(
+                      child: Image.network(
+                        child.avatar,
+                        width: 80,
+                        height: 80,
+                        fit: BoxFit.cover,
+                        errorBuilder:
+                            (context, error, stackTrace) => const Icon(
+                              Icons.child_care_rounded,
+                              color: Colors.white,
+                              size: 32,
+                            ),
                       ),
+                    )
+                    : const Icon(
+                      Icons.child_care_rounded,
+                      color: Colors.white,
+                      size: 32,
                     ),
-                  )
-                : const Icon(
-                    Icons.child_care_rounded,
-                    color: Colors.white,
-                    size: 32,
-                  ),
           ),
           const SizedBox(width: 20),
           Expanded(
@@ -172,7 +167,7 @@ class ChildInsightScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  childMember.name,
+                  child.name,
                   style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
@@ -188,7 +183,6 @@ class ChildInsightScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-
               ],
             ),
           ),
@@ -230,7 +224,12 @@ class ChildInsightScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -312,15 +311,12 @@ class ChildInsightScreen extends StatelessWidget {
               ),
               Text(
                 '8/10 tasks',
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF64748B),
-                ),
+                style: const TextStyle(fontSize: 14, color: Color(0xFF64748B)),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          
+
           // Progress bar
           Container(
             width: double.infinity,
@@ -343,7 +339,7 @@ class ChildInsightScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Progress details
           Row(
             children: [
@@ -383,9 +379,24 @@ class ChildInsightScreen extends StatelessWidget {
 
   Widget _buildRecentActivitiesCard() {
     final activities = [
-      {'title': 'Homework Helper', 'time': '2 hours ago', 'points': '+10', 'icon': Icons.school_rounded},
-      {'title': 'Room Cleanup', 'time': '1 day ago', 'points': '+5', 'icon': Icons.cleaning_services_rounded},
-      {'title': 'Reading Time', 'time': '2 days ago', 'points': '+8', 'icon': Icons.book_rounded},
+      {
+        'title': 'Homework Helper',
+        'time': '2 hours ago',
+        'points': '+10',
+        'icon': Icons.school_rounded,
+      },
+      {
+        'title': 'Room Cleanup',
+        'time': '1 day ago',
+        'points': '+5',
+        'icon': Icons.cleaning_services_rounded,
+      },
+      {
+        'title': 'Reading Time',
+        'time': '2 days ago',
+        'points': '+8',
+        'icon': Icons.book_rounded,
+      },
     ];
 
     return Container(
@@ -415,65 +426,70 @@ class ChildInsightScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          
-          ...activities.map((activity) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0EA5E9).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    activity['icon'] as IconData,
-                    color: const Color(0xFF0EA5E9),
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        activity['title'] as String,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1A202C),
-                        ),
-                      ),
-                      Text(
-                        activity['time'] as String,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF64748B),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF10B981).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    activity['points'] as String,
-                    style: const TextStyle(
-                      color: Color(0xFF10B981),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+
+          ...activities.map(
+            (activity) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0EA5E9).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      activity['icon'] as IconData,
+                      color: const Color(0xFF0EA5E9),
+                      size: 20,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          activity['title'] as String,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF1A202C),
+                          ),
+                        ),
+                        Text(
+                          activity['time'] as String,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      activity['points'] as String,
+                      style: const TextStyle(
+                        color: Color(0xFF10B981),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          )),
+          ),
         ],
       ),
     );
@@ -481,9 +497,21 @@ class ChildInsightScreen extends StatelessWidget {
 
   Widget _buildAchievementsCard() {
     final achievements = [
-      {'title': 'Early Bird', 'description': 'Completed morning routine 5 days in a row', 'icon': Icons.wb_sunny_rounded},
-      {'title': 'Helper Hero', 'description': 'Helped with household chores 10 times', 'icon': Icons.volunteer_activism_rounded},
-      {'title': 'Study Star', 'description': 'Finished homework without reminders', 'icon': Icons.star_rounded},
+      {
+        'title': 'Early Bird',
+        'description': 'Completed morning routine 5 days in a row',
+        'icon': Icons.wb_sunny_rounded,
+      },
+      {
+        'title': 'Helper Hero',
+        'description': 'Helped with household chores 10 times',
+        'icon': Icons.volunteer_activism_rounded,
+      },
+      {
+        'title': 'Study Star',
+        'description': 'Finished homework without reminders',
+        'icon': Icons.star_rounded,
+      },
     ];
 
     return Container(
@@ -513,59 +541,61 @@ class ChildInsightScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          
-          ...achievements.map((achievement) => Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8F9FE),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
+
+          ...achievements.map(
+            (achievement) => Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8F9FE),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    borderRadius: BorderRadius.circular(12),
+                    child: Icon(
+                      achievement['icon'] as IconData,
+                      color: Colors.white,
+                      size: 24,
+                    ),
                   ),
-                  child: Icon(
-                    achievement['icon'] as IconData,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        achievement['title'] as String,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1A202C),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          achievement['title'] as String,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF1A202C),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        achievement['description'] as String,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF64748B),
+                        const SizedBox(height: 4),
+                        Text(
+                          achievement['description'] as String,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF64748B),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          )),
+          ),
         ],
       ),
     );

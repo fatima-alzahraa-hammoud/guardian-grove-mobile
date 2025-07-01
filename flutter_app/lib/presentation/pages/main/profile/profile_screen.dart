@@ -7,6 +7,7 @@ import 'package:flutter_app/data/models/family_model.dart' show FamilyMember;
 import 'package:flutter_app/presentation/bloc/home/home_bloc.dart';
 import 'package:flutter_app/presentation/pages/auth/add_member_screen.dart';
 import 'package:flutter_app/presentation/pages/main/profile/edit_profile_screen.dart';
+import 'package:flutter_app/presentation/pages/main/child insight/child_insight_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -1247,22 +1248,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // Navigate to child insights (only for parents clicking children)
   void _navigateToChildInsights(FamilyMember child) {
-    // TODO: Replace with actual child insights screen navigation
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.insights_rounded, color: Colors.white, size: 20),
-            const SizedBox(width: 12),
-            Text('Opening ${child.name}\'s insights...'),
-          ],
-        ),
-        backgroundColor: const Color(0xFF0EA5E9),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    // Navigate to Child Insights screen
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ChildInsightScreen(child: child)),
+    ).then((_) {
+      // Refresh data when returning from child insights
+      _refreshUserData();
+      _fetchFamilyMembersDirect();
+    });
   }
 
   // Empty state when no family members
