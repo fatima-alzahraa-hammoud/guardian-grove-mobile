@@ -212,7 +212,7 @@ class LeaderboardView extends StatelessWidget {
         slivers: [
           // Enhanced App Bar
           SliverAppBar(
-            expandedHeight: 160.0,
+            expandedHeight: 180.0,
             floating: false,
             pinned: true,
             backgroundColor: Colors.transparent,
@@ -228,7 +228,7 @@ class LeaderboardView extends StatelessWidget {
                 ),
                 child: SafeArea(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(28, 20, 28, 20),
+                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -265,6 +265,8 @@ class LeaderboardView extends StatelessWidget {
                                       height: 1.1,
                                       letterSpacing: -0.5,
                                     ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                   SizedBox(height: 6),
                                   Text(
@@ -275,13 +277,15 @@ class LeaderboardView extends StatelessWidget {
                                       fontWeight: FontWeight.w500,
                                       height: 1.3,
                                     ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 16),
                         if (state.currentFamily != null)
                           Container(
                             decoration: BoxDecoration(
@@ -303,7 +307,7 @@ class LeaderboardView extends StatelessWidget {
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 16,
-                                    vertical: 12,
+                                    vertical: 10,
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
@@ -311,15 +315,15 @@ class LeaderboardView extends StatelessWidget {
                                       const Icon(
                                         Icons.stars_rounded,
                                         color: Colors.white,
-                                        size: 16,
+                                        size: 14,
                                       ),
-                                      const SizedBox(width: 8),
+                                      const SizedBox(width: 6),
                                       Flexible(
                                         child: Text(
                                           'View Achievements',
                                           style: const TextStyle(
                                             color: Colors.white,
-                                            fontSize: 13,
+                                            fontSize: 12,
                                             fontWeight: FontWeight.w600,
                                             letterSpacing: 0.2,
                                           ),
@@ -343,7 +347,7 @@ class LeaderboardView extends StatelessWidget {
           // Time frame selector section
           SliverToBoxAdapter(
             child: Container(
-              padding: const EdgeInsets.fromLTRB(28, 24, 28, 20),
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
               child: _buildTimeFrameSelector(context, state.currentTimeFrame),
             ),
           ),
@@ -377,7 +381,7 @@ class LeaderboardView extends StatelessWidget {
           if (state.currentLeaderboard.length > 3)
             SliverToBoxAdapter(
               child: Container(
-                padding: const EdgeInsets.fromLTRB(28, 32, 28, 20),
+                padding: const EdgeInsets.fromLTRB(16, 28, 16, 16),
                 child: Row(
                   children: [
                     Container(
@@ -394,13 +398,16 @@ class LeaderboardView extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    const Text(
-                      'Other Families',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF1A202C),
-                        letterSpacing: -0.3,
+                    const Flexible(
+                      child: Text(
+                        'Other Families',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF1A202C),
+                          letterSpacing: -0.3,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
@@ -420,8 +427,8 @@ class LeaderboardView extends StatelessWidget {
                   final family = state.currentLeaderboard[familyIndex];
                   return Container(
                     margin: const EdgeInsets.symmetric(
-                      horizontal: 28,
-                      vertical: 8,
+                      horizontal: 16,
+                      vertical: 6,
                     ),
                     child: LeaderboardItem(
                       family: family,
@@ -508,16 +515,19 @@ class LeaderboardView extends StatelessWidget {
                                 : null,
                       ),
                       child: Center(
-                        child: Text(
-                          frame.name.toUpperCase(),
-                          style: TextStyle(
-                            color:
-                                isSelected
-                                    ? Colors.white
-                                    : const Color(0xFF64748B),
-                            fontWeight: FontWeight.w700,
-                            fontSize: 12,
-                            letterSpacing: 0.8,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            frame.name.toUpperCase(),
+                            style: TextStyle(
+                              color:
+                                  isSelected
+                                      ? Colors.white
+                                      : const Color(0xFF64748B),
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
+                              letterSpacing: 0.8,
+                            ),
                           ),
                         ),
                       ),
@@ -532,8 +542,8 @@ class LeaderboardView extends StatelessWidget {
 
   Widget _buildMotivationalMessage(String message) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-      padding: const EdgeInsets.all(28),
+      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [Color(0xFF10B981), Color(0xFF059669)],
@@ -601,8 +611,8 @@ class LeaderboardView extends StatelessWidget {
 
   Widget _buildProgressStats(FamilyProgressStats stats) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-      padding: const EdgeInsets.all(28),
+      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -670,8 +680,8 @@ class LeaderboardView extends StatelessWidget {
 
   Widget _buildYourRankCard(LeaderboardFamily currentFamily) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-      padding: const EdgeInsets.all(28),
+      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
@@ -750,6 +760,7 @@ class LeaderboardView extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.3,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -838,13 +849,16 @@ class LeaderboardView extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 20),
-                const Text(
-                  'Top Families',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF1A202C),
-                    letterSpacing: -0.3,
+                const Flexible(
+                  child: Text(
+                    'Top Families',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF1A202C),
+                      letterSpacing: -0.3,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -953,7 +967,9 @@ class LeaderboardView extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 8), // Family card with proper constraints
+          const SizedBox(height: 8),
+
+          // Family card with proper constraints
           Container(
             height: isFirstPlace ? 200 : (isSecondPlace ? 190 : 180),
             padding: const EdgeInsets.all(12),
@@ -1014,7 +1030,7 @@ class LeaderboardView extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
 
-                // Family name
+                // Family name with proper overflow handling
                 SizedBox(
                   height: 36,
                   child: Center(
