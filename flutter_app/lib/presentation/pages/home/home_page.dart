@@ -10,6 +10,7 @@ import '../../../core/services/storage_service.dart';
 import 'home_subScreens/family_tree_screen.dart';
 import 'home_subScreens/family_journal.dart';
 import 'home_subScreens/notes.dart';
+import 'home_subScreens/bonding_activities_screen.dart';
 import 'package:dio/dio.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../data/models/family_model.dart' show FamilyMember;
@@ -989,9 +990,9 @@ class _HomeViewState extends State<HomeView> {
           'title': 'Bonding',
           'color': const Color(0xFF8B5CF6),
           'onTap': () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Bonding Activities - Coming Soon!'),
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const BondingActivityScreen(),
               ),
             );
           },
