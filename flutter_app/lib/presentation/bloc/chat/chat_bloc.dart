@@ -1,86 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:equatable/equatable.dart';
+import 'chat_event.dart';
+import 'chat_state.dart';
 import '../../../data/models/chat_models.dart';
 import '../../../data/repositories/chat_repository.dart';
 
-// Events
-abstract class ChatEvent extends Equatable {
-  const ChatEvent();
-  @override
-  List<Object> get props => [];
-}
-
-class ChatInitialized extends ChatEvent {}
-
-class ChatMessageSent extends ChatEvent {
-  final String message;
-  const ChatMessageSent(this.message);
-  @override
-  List<Object> get props => [message];
-}
-
-class ChatCleared extends ChatEvent {}
-
-class ChatHistoryRequested extends ChatEvent {}
-
-class ChatHistoryLoaded extends ChatEvent {
-  final List<Chat> chats;
-  const ChatHistoryLoaded(this.chats);
-  @override
-  List<Object> get props => [chats];
-}
-
-// States
-abstract class ChatState extends Equatable {
-  const ChatState();
-  @override
-  List<Object> get props => [];
-}
-
-class ChatInitial extends ChatState {}
-
-class ChatLoaded extends ChatState {
-  final List<ChatMessage> messages;
-  final bool isLoading;
-  final String? activeChatId;
-  final List<Chat> chatHistory;
-  final bool historyLoaded;
-
-  const ChatLoaded({
-    required this.messages,
-    this.isLoading = false,
-    this.activeChatId,
-    this.chatHistory = const [],
-    this.historyLoaded = false,
-  });
-
-  @override
-  List<Object> get props => [messages, isLoading, chatHistory, historyLoaded];
-  ChatLoaded copyWith({
-    List<ChatMessage>? messages,
-    bool? isLoading,
-    String? activeChatId,
-    List<Chat>? chatHistory,
-    bool? historyLoaded,
-  }) {
-    return ChatLoaded(
-      messages: messages ?? this.messages,
-      isLoading: isLoading ?? this.isLoading,
-      activeChatId: activeChatId ?? this.activeChatId,
-      chatHistory: chatHistory ?? this.chatHistory,
-      historyLoaded: historyLoaded ?? this.historyLoaded,
-    );
-  }
-}
-
-class ChatError extends ChatState {
-  final String message;
-  const ChatError(this.message);
-  @override
-  List<Object> get props => [message];
-}
-
-// BLoC
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
   final ChatRepository _chatRepository;
   String? _currentChatId;
@@ -90,7 +14,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<ChatInitialized>(_onChatInitialized);
     on<ChatMessageSent>(_onChatMessageSent);
     on<ChatCleared>(_onChatCleared);
+    on<ChatSpecificLoaded>(_onChatSpecificLoaded); // NEW: Load specific chat
     on<ChatHistoryRequested>(_onChatHistoryRequested);
+    on<AIFeatureRequested>(_onAIFeatureRequested); // NEW: AI Features
   }
 
   Future<void> _onChatInitialized(
@@ -125,6 +51,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     }
   }
 
+  // ALSO UPDATE the _showWelcomeMessage to use updated history:
   void _showWelcomeMessage(Emitter<ChatState> emit) {
     final welcomeMessage = ChatMessage.bot(
       "Hello! 👋 I'm your Family Helper AI. I'm here to assist you with anything you need - from homework help to creative ideas, recipes, and fun activities! What would you like to explore today?",
@@ -133,8 +60,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       ChatLoaded(
         messages: [welcomeMessage],
         activeChatId: null,
-        chatHistory: const [],
-        historyLoaded: false,
+        chatHistory: _allChats, // FIXED: Include updated history
+        historyLoaded: true,
       ),
     );
   }
@@ -159,26 +86,37 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
       emit(currentState.copyWith(messages: updatedMessages, isLoading: true));
 
-      // Create new chat if needed
-      if (_currentChatId == null) {
-        final title = _generateChatTitle(event.message);
-        final newChat = await _chatRepository.createChat(title: title);
-        _currentChatId = newChat.id;
-        _allChats.add(newChat);
-      }
-
-      // Send message to AI
-      final botResponse = await _chatRepository.sendMessage(
-        chatId: _currentChatId!,
+      // Send message to AI (the repository will handle chat creation if needed)
+      final response = await _chatRepository.sendMessage(
+        chatId: _currentChatId,
         message: event.message,
       );
 
-      final botMessage = ChatMessage.bot(botResponse);
+      if (response.success) {
+        // Update current chat ID if it was created
+        if (response.chatId != null && _currentChatId == null) {
+          _currentChatId = response.chatId;
+        }
 
-      // Update with final messages (remove loading)
-      final finalMessages = [...currentState.messages, userMessage, botMessage];
+        final botMessage = ChatMessage.bot(response.message);
 
-      emit(currentState.copyWith(messages: finalMessages, isLoading: false));
+        // Update with final messages (remove loading)
+        final finalMessages = [
+          ...currentState.messages,
+          userMessage,
+          botMessage,
+        ];
+
+        emit(
+          currentState.copyWith(
+            messages: finalMessages,
+            isLoading: false,
+            activeChatId: _currentChatId,
+          ),
+        );
+      } else {
+        throw Exception(response.error ?? 'Failed to get AI response');
+      }
     } catch (e) {
       // Remove loading message on error
       final messagesWithoutLoading =
@@ -195,12 +133,118 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     }
   }
 
+  // UPDATE your ChatBloc _onChatCleared method to properly save before clearing:
+
+  // UPDATE your ChatBloc _onChatCleared method to properly save before clearing:
+
   Future<void> _onChatCleared(
     ChatCleared event,
     Emitter<ChatState> emit,
   ) async {
-    _currentChatId = null;
-    _showWelcomeMessage(emit);
+    try {
+      final currentState = state;
+
+      // FIXED: Save current chat to history before clearing (if it has messages)
+      if (currentState is ChatLoaded &&
+          currentState.messages.isNotEmpty &&
+          currentState.messages.length > 1 && // More than just welcome message
+          _currentChatId != null) {
+        // Debug: Saving current chat to history before clearing
+        debugPrint('💾 Saving current chat to history before clearing...');
+
+        // The chat should already be saved in the backend when messages were sent
+        // But we can add additional logic here if needed
+
+        // Add the current chat to our local history
+        if (!_allChats.any((chat) => chat.id == _currentChatId)) {
+          // Create a chat object from current state and add to history
+          final currentChat = Chat(
+            id: _currentChatId!,
+            userId: 'current_user', // You might want to get this from storage
+            title: _generateChatTitle(currentState.messages.first.message),
+            messages: currentState.messages,
+            createdAt: DateTime.now().subtract(const Duration(hours: 1)),
+            updatedAt: DateTime.now(),
+          );
+          _allChats.insert(0, currentChat); // Add to beginning of list
+        }
+      }
+
+      // Clear current chat state
+      _currentChatId = null;
+
+      // Show welcome message for new chat
+      _showWelcomeMessage(emit);
+    } catch (e) {
+      debugPrint('❌ Error during chat clear: $e');
+      // Still clear even if save fails
+      _currentChatId = null;
+      _showWelcomeMessage(emit);
+    }
+  }
+
+  Future<void> _onChatSpecificLoaded(
+    ChatSpecificLoaded event,
+    Emitter<ChatState> emit,
+  ) async {
+    try {
+      debugPrint('📖 Loading specific chat: ${event.chatId}');
+
+      Chat? targetChat;
+
+      // First, try to find the chat in our local cache
+      try {
+        targetChat = _allChats.firstWhere((chat) => chat.id == event.chatId);
+        debugPrint('✅ Found chat in local cache');
+      } catch (e) {
+        // Chat not found locally, try to fetch from backend
+        debugPrint('🔍 Chat not found locally, fetching from backend...');
+
+        try {
+          // Try to get the specific chat by ID first
+          targetChat = await _chatRepository.getChatById(event.chatId);
+
+          if (targetChat != null) {
+            // Add to local cache
+            if (!_allChats.any((chat) => chat.id == targetChat!.id)) {
+              _allChats.insert(0, targetChat);
+            }
+            debugPrint('✅ Found chat via getChatById');
+          }
+        } catch (e) {
+          debugPrint('⚠️ getChatById failed, trying getChats: $e');
+        }
+
+        // If getChatById failed, try fetching all chats and finding the one we need
+        if (targetChat == null) {
+          final chats = await _chatRepository.getChats();
+          _allChats = chats;
+
+          targetChat = _allChats.firstWhere((chat) => chat.id == event.chatId);
+          debugPrint('✅ Found chat via getChats fallback');
+        }
+      }
+
+      // Set this as the current chat
+      _currentChatId = targetChat.id;
+
+      // Load all messages from this chat
+      emit(
+        ChatLoaded(
+          messages: targetChat.messages,
+          activeChatId: _currentChatId,
+          chatHistory: _allChats,
+          historyLoaded: true,
+          isLoading: false,
+        ),
+      );
+
+      debugPrint('✅ Successfully loaded chat: ${targetChat.title}');
+      debugPrint('📝 Chat has ${targetChat.messages.length} messages');
+    } catch (e) {
+      debugPrint('❌ Error loading specific chat: $e');
+      emit(ChatError('Failed to load chat: ${e.toString()}'));
+    }
   }
 
   Future<void> _onChatHistoryRequested(
@@ -216,10 +260,76 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     try {
       // Fetch chat history from repository (API call)
       final chats = await _chatRepository.getChats();
+      _allChats = chats;
 
       emit(currentState.copyWith(chatHistory: chats, historyLoaded: true));
     } catch (e) {
       emit(ChatError('Failed to load chat history: ${e.toString()}'));
+    }
+  }
+
+  // NEW: Handle AI Features
+  Future<void> _onAIFeatureRequested(
+    AIFeatureRequested event,
+    Emitter<ChatState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! ChatLoaded) return;
+
+    try {
+      // Add loading message
+      final loadingMessage = ChatMessage.loading();
+      final updatedMessages = [...currentState.messages, loadingMessage];
+      emit(currentState.copyWith(messages: updatedMessages, isLoading: true));
+
+      String response = '';
+
+      // Call the appropriate repository method based on feature type
+      switch (event.featureType) {
+        case AIFeatureType.growthPlans:
+          response = await _chatRepository.generateGrowthPlans();
+          break;
+        case AIFeatureType.learningZone:
+          response = await _chatRepository.generateLearningZone();
+          break;
+        case AIFeatureType.trackDay:
+          response = await _chatRepository.generateTrackDay();
+          break;
+        case AIFeatureType.story:
+          response = await _chatRepository.generateStory();
+          break;
+        case AIFeatureType.viewTasks:
+          response = await _chatRepository.generateViewTasks();
+          break;
+        case AIFeatureType.quickTip:
+          final tipData = await _chatRepository.generateQuickTips();
+          response = '💡 **${tipData['title']}**\n\n${tipData['message']}';
+          break;
+      }
+
+      final botMessage = ChatMessage.bot(response);
+
+      // Remove loading message and add bot response
+      final finalMessages = [...currentState.messages, botMessage];
+
+      emit(currentState.copyWith(messages: finalMessages, isLoading: false));
+    } catch (e) {
+      // Remove loading message on error
+      final messagesWithoutLoading =
+          currentState.messages.where((msg) => !msg.isLoading).toList();
+
+      emit(
+        currentState.copyWith(
+          messages: messagesWithoutLoading,
+          isLoading: false,
+        ),
+      );
+
+      emit(
+        ChatError(
+          'Failed to generate ${event.featureType.name}: ${e.toString()}',
+        ),
+      );
     }
   }
 

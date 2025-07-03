@@ -43,7 +43,8 @@ class TimeBasedLeaderboardLoaded extends TimeBasedLeaderboardState {
   final LeaderboardTimeFrame currentTimeFrame;
   final List<LeaderboardFamily> currentLeaderboard;
   final LeaderboardFamily? currentFamily;
-  final FamilyProgressStats? progressStats;
+  final FamilyProgressStats
+  progressStats; // No longer nullable since we have fallback
   final String motivationalMessage;
   final String rankingUpMessage;
 
@@ -52,7 +53,7 @@ class TimeBasedLeaderboardLoaded extends TimeBasedLeaderboardState {
     required this.currentTimeFrame,
     required this.currentLeaderboard,
     this.currentFamily,
-    this.progressStats,
+    required this.progressStats, // Now required
     this.motivationalMessage = '',
     this.rankingUpMessage = '',
   });

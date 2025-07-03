@@ -7,6 +7,7 @@ import 'package:flutter_app/data/models/family_model.dart' show FamilyMember;
 import 'package:flutter_app/presentation/bloc/home/home_bloc.dart';
 import 'package:flutter_app/presentation/pages/auth/add_member_screen.dart';
 import 'package:flutter_app/presentation/pages/main/profile/edit_profile_screen.dart';
+import 'package:flutter_app/presentation/pages/main/child insight/child_insight_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -19,7 +20,6 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   UserModel? currentUser;
   HomeData? homeData;
-  bool _isDropdownExpanded = false;
 
   // Direct backend family members
   List<FamilyMember>? _backendFamilyMembers;
@@ -37,12 +37,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // Get current user from storage
     currentUser = StorageService.getUser();
     setState(() {});
-  }
-
-  void _toggleDropdown() {
-    setState(() {
-      _isDropdownExpanded = !_isDropdownExpanded;
-    });
   }
 
   String _formatDate(DateTime date) {
@@ -130,80 +124,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
           },
           child: Padding(
             padding: const EdgeInsets.all(24.0),
-            child: Column(
-              children: [
-                // Header with settings dropdown
-                _buildHeader(),
-                const SizedBox(height: 24),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  // User Info Card with Edit Button
+                  _buildUserInfoCard(),
+                  const SizedBox(height: 16),
 
-                // Main profile content
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        // User Info Card with Edit Button
-                        _buildUserInfoCard(),
-                        const SizedBox(height: 16),
+                  // Family Stats Card (redesigned with app theme)
+                  _buildRedesignedFamilyCard(),
+                  const SizedBox(height: 24),
 
-                        // Family Stats Card (redesigned with app theme)
-                        _buildRedesignedFamilyCard(),
-                        const SizedBox(height: 24),
-
-                        // Family Members Section (horizontal scrolling with real avatars)
-                        _buildHorizontalFamilyMembersSection(),
-                        const SizedBox(height: 40),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+                  // Family Members Section (horizontal scrolling with real avatars)
+                  _buildHorizontalFamilyMembersSection(),
+                  const SizedBox(height: 40),
+                ],
+              ),
             ),
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Text(
-          'Profile',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF1A202C),
-          ),
-        ),
-        // Settings dropdown button
-        GestureDetector(
-          onTap: _toggleDropdown,
-          child: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Icon(
-              _isDropdownExpanded
-                  ? Icons.keyboard_arrow_up_rounded
-                  : Icons.keyboard_arrow_down_rounded,
-              color: const Color(0xFF64748B),
-              size: 20,
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -320,16 +260,74 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Name with beautiful typography
-                    Text(
-                      currentUser!.name,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF1A202C),
-                        letterSpacing: -0.5,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+                    // Name with edit button on the same line
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            currentUser!.name,
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF1A202C),
+                              letterSpacing: -0.5,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Edit Profile Button moved here
+                        GestureDetector(
+                          onTap: () async {
+                            if (currentUser == null) return;
+                            // Navigate to EditProfileScreen
+                            final isParent = _isCurrentUserParent();
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => EditProfileScreen(
+                                      user: currentUser!,
+                                      familyName: homeData?.familyName ?? '',
+                                      familyAvatar:
+                                          homeData?.familyAvatar ?? '',
+                                      isParent: isParent,
+                                      onConfirm: (data) {
+                                        _refreshUserData();
+                                        _fetchFamilyMembersDirect();
+                                      },
+                                    ),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF0EA5E9), Color(0xFF0284C7)],
+                              ),
+                              borderRadius: BorderRadius.circular(14),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFF0EA5E9,
+                                  ).withValues(alpha: 0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.edit_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 8),
                     // Beautiful role badge
@@ -370,53 +368,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                   ],
-                ),
-              ),
-
-              // Edit Profile Button
-              GestureDetector(
-                onTap: () async {
-                  if (currentUser == null) return;
-                  // Navigate to EditProfileScreen
-                  final isParent = _isCurrentUserParent();
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (context) => EditProfileScreen(
-                            user: currentUser!,
-                            familyName: homeData?.familyName ?? '',
-                            familyAvatar: homeData?.familyAvatar ?? '',
-                            isParent: isParent,
-                            onConfirm: (data) {
-                              _refreshUserData();
-                              _fetchFamilyMembersDirect();
-                            },
-                          ),
-                    ),
-                  );
-                },
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF0EA5E9), Color(0xFF0284C7)],
-                    ),
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF0EA5E9).withValues(alpha: 0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.edit_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
                 ),
               ),
             ],
@@ -478,6 +429,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         String familyName = 'Your Family';
         String familyAvatar = '';
         int totalFamilyStars = 0;
+
+        // Get user data directly from storage like in home screen
         int userCoins = currentUser?.coins ?? 0;
         int userRank = currentUser?.rankInFamily ?? 0;
 
@@ -495,21 +448,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             familyAvatar = familyAvatar.substring(1);
           }
 
-          // Try to get user's individual stats from family members
-          final currentUserId = currentUser?.id;
-          if (currentUserId != null) {
-            try {
-              final userMember = homeData.familyMembers.firstWhere(
-                (member) => member.id == currentUserId,
-              );
-              // Update with member-specific data if available
-              userCoins = userMember.coins;
-              userRank = userMember.rankInFamily;
-            } catch (e) {
-              // User not found in family members, use current user data
-              debugPrint('User not found in family members, using stored data');
-            }
-          }
+          // Keep using currentUser data for coins and rank (like home screen)
+          // Don't override with potentially stale family member data
         }
 
         Widget buildFamilyAvatar() {
@@ -623,16 +563,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        // Family Name
-                        Text(
-                          familyName,
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            letterSpacing: -0.5,
-                          ),
-                          overflow: TextOverflow.ellipsis,
+                        // Family Name with Star
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                familyName,
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  letterSpacing: -0.5,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            // Star with count
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.star_rounded,
+                                    color: Color(0xFFFBBF24),
+                                    size: 16,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '$totalFamilyStars',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 14,
+                                      letterSpacing: -0.2,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -645,17 +626,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               // Stats Row
               Row(
                 children: [
-                  // Family Stars
-                  Expanded(
-                    child: _buildFamilyStatCard(
-                      icon: Icons.star_rounded,
-                      value: '$totalFamilyStars',
-                      label: 'Family Stars',
-                      color: const Color(0xFFFBBF24), // Yellow
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-
                   // User Coins
                   Expanded(
                     child: _buildFamilyStatCard(
@@ -1247,22 +1217,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // Navigate to child insights (only for parents clicking children)
   void _navigateToChildInsights(FamilyMember child) {
-    // TODO: Replace with actual child insights screen navigation
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.insights_rounded, color: Colors.white, size: 20),
-            const SizedBox(width: 12),
-            Text('Opening ${child.name}\'s insights...'),
-          ],
-        ),
-        backgroundColor: const Color(0xFF0EA5E9),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    // Navigate to Child Insights screen
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ChildInsightScreen(child: child)),
+    ).then((_) {
+      // Refresh data when returning from child insights
+      _refreshUserData();
+      _fetchFamilyMembersDirect();
+    });
   }
 
   // Empty state when no family members

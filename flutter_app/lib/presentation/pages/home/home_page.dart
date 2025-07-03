@@ -10,9 +10,12 @@ import '../../../core/services/storage_service.dart';
 import 'home_subScreens/family_tree_screen.dart';
 import 'home_subScreens/family_journal.dart';
 import 'home_subScreens/notes.dart';
+import 'home_subScreens/bonding_activities_screen.dart';
 import 'package:dio/dio.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../data/models/family_model.dart' show FamilyMember;
+import 'home_subScreens/store.dart';
+import 'home_subScreens/goals_adventure_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -567,10 +570,6 @@ class _HomeViewState extends State<HomeView> {
 
             // Progress Section
             _buildProgressSection(context, state),
-            const SizedBox(height: 24),
-
-            // AI Assistant Section
-            _buildAIAssistantSection(context),
             const SizedBox(height: 32),
           ],
         ),
@@ -972,7 +971,7 @@ class _HomeViewState extends State<HomeView> {
 
   // Replace your existing _buildQuickActionsGrid method with this updated version:
   Widget _buildQuickActionsGrid(BuildContext context) {
-    // Define quick action items split into multiple pages for scrolling
+    // Define quick action items with direct navigation
     final List<List<Map<String, dynamic>>> quickActionPages = [
       // Page 1
       [
@@ -980,20 +979,33 @@ class _HomeViewState extends State<HomeView> {
           'icon': Icons.note_alt_rounded,
           'title': 'Notes',
           'color': const Color(0xFFFF6B9D),
-          'onTap': () => context.read<HomeBloc>().add(NavigateToNotes()),
+          'onTap': () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const NotesScreen()),
+            );
+          },
         },
         {
           'icon': Icons.favorite_rounded,
           'title': 'Bonding',
           'color': const Color(0xFF8B5CF6),
-          'onTap':
-              () => context.read<HomeBloc>().add(NavigateToBondingActivities()),
+          'onTap': () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const BondingActivityScreen(),
+              ),
+            );
+          },
         },
         {
           'icon': Icons.school_rounded,
           'title': 'Learn',
           'color': const Color(0xFF10B981),
-          'onTap': () => context.read<HomeBloc>().add(NavigateToExploreLearn()),
+          'onTap': () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Learning Section - Coming Soon!')),
+            );
+          },
         },
       ],
       // Page 2
@@ -1002,19 +1014,31 @@ class _HomeViewState extends State<HomeView> {
           'icon': Icons.store_rounded,
           'title': 'Store',
           'color': const Color(0xFF06B6D4),
-          'onTap': () => context.read<HomeBloc>().add(NavigateToStore()),
+          'onTap': () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const StoreScreen()),
+            );
+          },
         },
         {
           'icon': Icons.calendar_today_rounded,
           'title': 'Calendar',
           'color': const Color(0xFFF59E0B),
-          'onTap': () => context.read<HomeBloc>().add(NavigateToCalendar()),
+          'onTap': () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Calendar - Coming Soon!')),
+            );
+          },
         },
         {
           'icon': Icons.sports_esports_rounded,
           'title': 'Games',
           'color': const Color(0xFFE11D48),
-          'onTap': () => context.read<HomeBloc>().add(NavigateToFunZone()),
+          'onTap': () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Games - Coming Soon!')),
+            );
+          },
         },
       ],
     ];
@@ -1074,7 +1098,7 @@ class _HomeViewState extends State<HomeView> {
           ),
         ),
         const SizedBox(height: 12),
-        // Dot indicators (will show since we have 2 pages)
+        // Dot indicators
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
@@ -1152,40 +1176,43 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Widget _buildFamilyFeaturesGrid(BuildContext context, HomeLoaded? state) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildFeatureCard(
-            icon: Icons.account_tree_rounded,
-            title: 'Family Tree',
-            subtitle: 'Explore your heritage',
-            color: const Color(0xFF10B981),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const FamilyTreeScreen(),
-                ),
-              );
-            },
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: _buildFeatureCard(
+              icon: Icons.account_tree_rounded,
+              title: 'Family Tree',
+              subtitle: 'Explore your heritage',
+              color: const Color(0xFF10B981),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const FamilyTreeScreen(),
+                  ),
+                );
+              },
+            ),
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildFeatureCard(
-            icon: Icons.auto_stories_rounded,
-            title: 'Family Journal',
-            subtitle: 'Share memories',
-            color: const Color(0xFF8B5CF6),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const FamilyJournalScreen(),
-                ),
-              );
-            },
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildFeatureCard(
+              icon: Icons.auto_stories_rounded,
+              title: 'Family Journal',
+              subtitle: 'Share memories',
+              color: const Color(0xFF8B5CF6),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const FamilyJournalScreen(),
+                  ),
+                );
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -1195,8 +1222,14 @@ class _HomeViewState extends State<HomeView> {
       subtitle: 'Goals and adventures',
       buttonText: 'Start Adventures',
       icon: Icons.flag_rounded,
-      color: const Color(0xFF0EA5E9),
-      onTap: () => context.read<HomeBloc>().add(NavigateToGoalsAdventures()),
+      color: const Color(0xFF10B981),
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const GoalsAdventuresScreen(),
+          ),
+        );
+      },
     );
   }
 
@@ -1536,8 +1569,8 @@ class _HomeViewState extends State<HomeView> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          height: 120,
-          padding: const EdgeInsets.all(20),
+          constraints: const BoxConstraints(minHeight: 120),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
@@ -1552,6 +1585,7 @@ class _HomeViewState extends State<HomeView> {
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Container(
                 width: 40,
@@ -1562,116 +1596,34 @@ class _HomeViewState extends State<HomeView> {
                 ),
                 child: Icon(icon, color: color, size: 20),
               ),
-              const Spacer(),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1A202C),
+              const SizedBox(height: 12),
+              Flexible(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1A202C),
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              Text(
-                subtitle,
-                style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+              const SizedBox(height: 4),
+              Flexible(
+                child: Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF64748B),
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  // Add missing _buildAIAssistantSection method
-  Widget _buildAIAssistantSection(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Need help or guidance today?',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'I\'m here for you!',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap:
-                        () => context.read<HomeBloc>().add(
-                          NavigateToAIAssistant(),
-                        ),
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: const Text(
-                        'Talk to me, your AI Friend',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 16),
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.smart_toy_rounded,
-              color: Colors.white,
-              size: 24,
-            ),
-          ),
-        ],
       ),
     );
   }

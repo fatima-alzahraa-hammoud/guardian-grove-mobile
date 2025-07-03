@@ -18,32 +18,49 @@ abstract class HomeEvent extends Equatable {
 
 // Navigation Events
 class NavigateToProfile extends HomeEvent {}
+
 class NavigateToNotes extends HomeEvent {}
+
 class NavigateToBondingActivities extends HomeEvent {}
+
 class NavigateToExploreLearn extends HomeEvent {}
+
 class NavigateToCalendar extends HomeEvent {}
+
 class NavigateToFamilyTree extends HomeEvent {}
+
 class NavigateToFamilyJournal extends HomeEvent {}
+
 class NavigateToAchievements extends HomeEvent {}
+
 class NavigateToStore extends HomeEvent {}
+
 class NavigateToGoalsAdventures extends HomeEvent {}
+
 class NavigateToFunZone extends HomeEvent {}
+
 class NavigateToChildTracking extends HomeEvent {}
+
 class NavigateToTasksProgress extends HomeEvent {}
+
 class NavigateToAchievementsProgress extends HomeEvent {}
+
 class NavigateToMagicGarden extends HomeEvent {}
-class NavigateToAIAssistant extends HomeEvent {}
+
 class HomeLoadedEvent extends HomeEvent {}
 
 // New data loading events
 class LoadHomeData extends HomeEvent {}
+
 class RefreshHomeData extends HomeEvent {}
+
 class InviteFamilyMember extends HomeEvent {
   final String email;
   const InviteFamilyMember(this.email);
   @override
   List<Object> get props => [email];
 }
+
 class RefreshDailyMessage extends HomeEvent {}
 
 // States
@@ -54,6 +71,7 @@ abstract class HomeState extends Equatable {
 }
 
 class HomeInitial extends HomeState {}
+
 class HomeLoading extends HomeState {}
 
 class HomeLoaded extends HomeState {
@@ -108,7 +126,7 @@ class InvitationSent extends HomeState {
 // HomeBloc
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final HomeRemoteDataSource? homeDataSource;
-  
+
   HomeBloc({this.homeDataSource}) : super(HomeInitial()) {
     // Data loading events
     on<LoadHomeData>(_onLoadHomeData);
@@ -132,8 +150,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<NavigateToTasksProgress>(_onNavigateToTasksProgress);
     on<NavigateToAchievementsProgress>(_onNavigateToAchievementsProgress);
     on<NavigateToMagicGarden>(_onNavigateToMagicGarden);
-    on<NavigateToAIAssistant>(_onNavigateToAIAssistant);
-    
+
     // Mock data event
     on<HomeLoadedEvent>((event, emit) {
       emit(
@@ -161,7 +178,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
             quickActions: [],
             dailyMessage: DailyMessage(
               id: 'msg-1',
-              message: 'Every day is a new adventure waiting to unfold with your family!',
+              message:
+                  'Every day is a new adventure waiting to unfold with your family!',
               category: 'Inspiration',
               date: DateTime.now(),
             ),
@@ -274,13 +292,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     emit(const NavigationRequested('/magic-garden'));
   }
 
-  void _onNavigateToAIAssistant(
-    NavigateToAIAssistant event,
-    Emitter<HomeState> emit,
-  ) {
-    emit(const NavigationRequested('/ai-assistant'));
-  }
-
   // FIXED: Data loading using existing working API pattern
   Future<void> _onLoadHomeData(
     LoadHomeData event,
@@ -371,25 +382,32 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           membersData = responseData;
         }
 
-        familyMembers = membersData.map((memberData) {
-          return FamilyMember(
-            id: memberData['_id']?.toString() ?? 
-                memberData['id']?.toString() ?? 
-                DateTime.now().millisecondsSinceEpoch.toString(),
-            name: memberData['name']?.toString() ?? 'Unknown Member',
-            role: memberData['role']?.toString() ?? 'member',
-            gender: memberData['gender']?.toString() ?? '',
-            avatar: memberData['avatar']?.toString() ?? '',
-            birthday: memberData['birthday'] != null
-                ? DateTime.tryParse(memberData['birthday'].toString())
-                : null,
-            interests: memberData['interests'] != null && memberData['interests'] is List
-                ? List<String>.from(memberData['interests'])
-                : <String>[],
-          );
-        }).toList();
+        familyMembers =
+            membersData.map((memberData) {
+              return FamilyMember(
+                id:
+                    memberData['_id']?.toString() ??
+                    memberData['id']?.toString() ??
+                    DateTime.now().millisecondsSinceEpoch.toString(),
+                name: memberData['name']?.toString() ?? 'Unknown Member',
+                role: memberData['role']?.toString() ?? 'member',
+                gender: memberData['gender']?.toString() ?? '',
+                avatar: memberData['avatar']?.toString() ?? '',
+                birthday:
+                    memberData['birthday'] != null
+                        ? DateTime.tryParse(memberData['birthday'].toString())
+                        : null,
+                interests:
+                    memberData['interests'] != null &&
+                            memberData['interests'] is List
+                        ? List<String>.from(memberData['interests'])
+                        : <String>[],
+              );
+            }).toList();
 
-        debugPrint('✅ HomeBloc: Successfully loaded ${familyMembers.length} family members');
+        debugPrint(
+          '✅ HomeBloc: Successfully loaded ${familyMembers.length} family members',
+        );
       }
     } catch (e) {
       debugPrint('⚠️ HomeBloc: Failed to load family members: $e');
@@ -398,11 +416,15 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
     // Step 4: Build HomeData with real data
     final currentUser = StorageService.getUser();
-    
+
     // Debug family avatar data
-    debugPrint('🖼️ HomeBloc: Family avatar from API: ${familyData['familyAvatar']}');
-    debugPrint('🖼️ HomeBloc: Family avatar type: ${familyData['familyAvatar']?.runtimeType}');
-    
+    debugPrint(
+      '🖼️ HomeBloc: Family avatar from API: ${familyData['familyAvatar']}',
+    );
+    debugPrint(
+      '🖼️ HomeBloc: Family avatar type: ${familyData['familyAvatar']?.runtimeType}',
+    );
+
     return HomeData(
       id: familyData['_id']?.toString() ?? 'unknown',
       user: UserProfile(
@@ -410,9 +432,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         name: userData['name']?.toString() ?? currentUser?.name ?? 'User',
         email: userData['email']?.toString() ?? currentUser?.email ?? '',
         avatar: userData['avatar']?.toString() ?? currentUser?.avatar ?? '',
-        createdAt: userData['createdAt'] != null 
-            ? DateTime.tryParse(userData['createdAt'].toString()) ?? DateTime.now()
-            : DateTime.now(),
+        createdAt:
+            userData['createdAt'] != null
+                ? DateTime.tryParse(userData['createdAt'].toString()) ??
+                    DateTime.now()
+                : DateTime.now(),
       ),
       familyStats: FamilyStats(
         totalStars: familyData['totalStars']?.toInt() ?? 0,
@@ -433,17 +457,23 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       quickActions: [], // You can populate this with real data if available
       dailyMessage: DailyMessage(
         id: 'msg-1',
-        message: familyData['dailyMessage']?.toString() ?? 
-                'Every day is a new adventure waiting to unfold with your family!',
+        message:
+            familyData['dailyMessage']?.toString() ??
+            'Every day is a new adventure waiting to unfold with your family!',
         category: 'Inspiration',
         date: DateTime.now(),
       ),
       familyMembers: familyMembers,
       familyName: familyData['familyName']?.toString() ?? 'Your Family',
-      email: familyData['email']?.toString() ?? userData['email']?.toString() ?? '',
-      createdAt: familyData['createdAt'] != null 
-          ? DateTime.tryParse(familyData['createdAt'].toString()) ?? DateTime.now()
-          : DateTime.now(),
+      email:
+          familyData['email']?.toString() ??
+          userData['email']?.toString() ??
+          '',
+      createdAt:
+          familyData['createdAt'] != null
+              ? DateTime.tryParse(familyData['createdAt'].toString()) ??
+                  DateTime.now()
+              : DateTime.now(),
       familyAvatar: familyData['familyAvatar']?.toString() ?? '',
       notifications: familyData['notifications'] ?? [],
       goals: familyData['goals'] ?? [],

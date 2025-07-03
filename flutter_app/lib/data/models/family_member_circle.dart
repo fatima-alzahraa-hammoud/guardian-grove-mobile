@@ -67,21 +67,25 @@ class FamilyMemberCircle extends StatelessWidget {
               fixedAvatar.endsWith('.jpg') ||
               fixedAvatar.endsWith('.jpeg')) &&
           fixedAvatar.startsWith('assets/')) {
-        return Image.asset(
-          fixedAvatar,
-          width: 72,
-          height: 72,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => _buildInitialAvatar(),
+        return ClipOval(
+          child: Image.asset(
+            fixedAvatar,
+            width: 72,
+            height: 72,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => _buildInitialAvatar(),
+          ),
         );
       } else if (fixedAvatar.startsWith('http') ||
           fixedAvatar.startsWith('https')) {
-        return Image.network(
-          member.avatar,
-          width: 72,
-          height: 72,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => _buildInitialAvatar(),
+        return ClipOval(
+          child: Image.network(
+            member.avatar,
+            width: 72,
+            height: 72,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => _buildInitialAvatar(),
+          ),
         );
       }
     }

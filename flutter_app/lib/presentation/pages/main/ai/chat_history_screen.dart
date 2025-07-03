@@ -4,6 +4,27 @@ import '../../../../data/models/chat_models.dart';
 import '../../../../data/repositories/chat_repository.dart';
 import '../../../../injection_container.dart' as di;
 
+// Simple filter enum
+enum ChatHistoryFilter {
+  all,
+  today,
+  lastWeek,
+  lastMonth;
+
+  String get displayName {
+    switch (this) {
+      case ChatHistoryFilter.all:
+        return 'All';
+      case ChatHistoryFilter.today:
+        return 'Today';
+      case ChatHistoryFilter.lastWeek:
+        return 'This Week';
+      case ChatHistoryFilter.lastMonth:
+        return 'This Month';
+    }
+  }
+}
+
 class ChatHistoryScreen extends StatefulWidget {
   const ChatHistoryScreen({super.key});
 
@@ -16,25 +37,18 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen>
   late TabController _tabController;
   final ChatRepository _chatRepository = di.sl<ChatRepository>();
 
-  // State for each filter
-  final Map<ChatHistoryFilter, List<Chat>> _chatHistoryData = {};
-  final Map<ChatHistoryFilter, bool> _isLoading = {};
-  final Map<ChatHistoryFilter, String?> _errors = {};
+  // Store all chats once, then filter locally
+  List<Chat> _allChats = [];
+  bool _isLoadingAllChats = false;
+  String? _loadError;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
 
-    // Initialize loading states
-    for (final filter in ChatHistoryFilter.values) {
-      _isLoading[filter] = false;
-      _chatHistoryData[filter] = [];
-      _errors[filter] = null;
-    }
-
-    // Load initial data for the first tab
-    _loadChatHistory(ChatHistoryFilter.today);
+    // Load all chats once
+    _loadAllChats();
   }
 
   @override
@@ -43,33 +57,63 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen>
     super.dispose();
   }
 
-  Future<void> _loadChatHistory(ChatHistoryFilter filter) async {
-    if (_isLoading[filter] == true) return;
+  Future<void> _loadAllChats() async {
+    if (_isLoadingAllChats) return;
 
     setState(() {
-      _isLoading[filter] = true;
-      _errors[filter] = null;
+      _isLoadingAllChats = true;
+      _loadError = null;
     });
 
     try {
-      final response = await _chatRepository.getChatHistoryByFilter(filter);
+      final allChats = await _chatRepository.getChats();
 
       setState(() {
-        if (response.success) {
-          _chatHistoryData[filter] = response.chats;
-          _errors[filter] = null;
-        } else {
-          _errors[filter] = response.error ?? 'Failed to load chat history';
-          _chatHistoryData[filter] = [];
-        }
-        _isLoading[filter] = false;
+        _allChats = allChats;
+        _loadError = null;
+        _isLoadingAllChats = false;
       });
+
+      debugPrint('📚 Loaded ${allChats.length} total chats');
     } catch (e) {
       setState(() {
-        _errors[filter] = 'Error loading chat history: $e';
-        _chatHistoryData[filter] = [];
-        _isLoading[filter] = false;
+        _loadError = 'Error loading chat history: $e';
+        _allChats = [];
+        _isLoadingAllChats = false;
       });
+
+      debugPrint('❌ Error loading chats: $e');
+    }
+  }
+
+  // Get filtered chats for current tab
+  List<Chat> _getFilteredChats(ChatHistoryFilter filter) {
+    if (_allChats.isEmpty) return [];
+
+    final now = DateTime.now();
+
+    switch (filter) {
+      case ChatHistoryFilter.all:
+        return _allChats;
+
+      case ChatHistoryFilter.today:
+        return _allChats.where((chat) {
+          final chatDate = chat.updatedAt.toLocal();
+          final nowLocal = DateTime.now();
+          return chatDate.year == nowLocal.year &&
+              chatDate.month == nowLocal.month &&
+              chatDate.day == nowLocal.day;
+        }).toList();
+
+      case ChatHistoryFilter.lastWeek:
+        return _allChats.where((chat) {
+          return now.difference(chat.updatedAt).inDays <= 7;
+        }).toList();
+
+      case ChatHistoryFilter.lastMonth:
+        return _allChats.where((chat) {
+          return now.difference(chat.updatedAt).inDays <= 30;
+        }).toList();
     }
   }
 
@@ -172,6 +216,35 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen>
               ],
             ),
           ),
+
+          // Refresh button
+          GestureDetector(
+            onTap: _loadAllChats,
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child:
+                  _isLoadingAllChats
+                      ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                      )
+                      : const Icon(
+                        Icons.refresh_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+            ),
+          ),
         ],
       ),
     );
@@ -194,42 +267,37 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen>
         unselectedLabelColor: AppColors.darkGray,
         indicatorColor: AppColors.primaryTeal,
         indicatorWeight: 3,
-        labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+        labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
         unselectedLabelStyle: const TextStyle(
           fontWeight: FontWeight.w500,
-          fontSize: 14,
+          fontSize: 12,
         ),
-        onTap: (index) {
-          final filter = ChatHistoryFilter.values[index];
-          // Load data when tab is selected for the first time
-          if (_chatHistoryData[filter]!.isEmpty &&
-              _isLoading[filter] == false) {
-            _loadChatHistory(filter);
-          }
-        },
+        isScrollable: true,
         tabs:
             ChatHistoryFilter.values.map((filter) {
-              return Tab(text: filter.displayName);
+              final chatCount = _getFilteredChats(filter).length;
+              return Tab(
+                text:
+                    '${filter.displayName}${chatCount > 0 ? ' ($chatCount)' : ''}',
+              );
             }).toList(),
       ),
     );
   }
 
   Widget _buildChatHistoryTab(ChatHistoryFilter filter) {
-    final isLoading = _isLoading[filter] ?? false;
-    final error = _errors[filter];
-    final chats = _chatHistoryData[filter] ?? [];
-
-    if (isLoading) {
+    if (_isLoadingAllChats) {
       return _buildLoadingState();
     }
 
-    if (error != null) {
-      return _buildErrorState(error, () => _loadChatHistory(filter));
+    if (_loadError != null) {
+      return _buildErrorState(_loadError!, _loadAllChats);
     }
 
+    final chats = _getFilteredChats(filter);
+
     if (chats.isEmpty) {
-      return _buildEmptyState();
+      return _buildEmptyState(filter);
     }
 
     return Container(
@@ -241,7 +309,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen>
         ),
       ),
       child: RefreshIndicator(
-        onRefresh: () => _loadChatHistory(filter),
+        onRefresh: _loadAllChats,
         child: ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: chats.length,
@@ -391,9 +459,9 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen>
                 size: 64,
               ),
               const SizedBox(height: 16),
-              Text(
+              const Text(
                 'Oops! Something went wrong',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: AppColors.darkGray,
@@ -433,7 +501,15 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen>
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(ChatHistoryFilter filter) {
+    String message = 'No chats yet!';
+    String subtitle = 'Start a conversation with your Family Helper AI.';
+
+    if (filter != ChatHistoryFilter.all) {
+      message = 'No chats found for ${filter.displayName.toLowerCase()}';
+      subtitle = 'Try checking the "All" tab or start a new conversation.';
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.9),
@@ -450,7 +526,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen>
             children: [
               Container(
                 padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   gradient: AppColors.primaryGradient,
                   shape: BoxShape.circle,
                 ),
@@ -461,9 +537,9 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen>
                 ),
               ),
               const SizedBox(height: 24),
-              const Text(
-                'No chats yet!',
-                style: TextStyle(
+              Text(
+                message,
+                style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: AppColors.darkGray,
@@ -471,9 +547,9 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen>
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
-              const Text(
-                'Let\'s try chatting together! Start a conversation with your Family Helper AI.',
-                style: TextStyle(fontSize: 16, color: AppColors.darkGray),
+              Text(
+                subtitle,
+                style: const TextStyle(fontSize: 16, color: AppColors.darkGray),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
@@ -513,14 +589,31 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen>
   }
 
   void _openChat(Chat chat) {
-    // TODO: Navigate to chat detail screen or load chat in AI Assistant
+    // Show loading state temporarily
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Opening chat: ${chat.title}'),
+        content: Row(
+          children: [
+            const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text('Loading ${chat.title}...'),
+          ],
+        ),
         backgroundColor: AppColors.primaryTeal,
         behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 1),
       ),
     );
+
+    // Navigate back to AI assistant screen and pass the chat to load
+    Navigator.of(context).pop(chat); // Return the chat to the previous screen
   }
 
   String _formatDate(DateTime date) {

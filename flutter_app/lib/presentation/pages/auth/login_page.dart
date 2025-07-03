@@ -6,7 +6,6 @@ import '../../bloc/auth/auth_state.dart';
 import '../../../data/models/user_model.dart';
 import '../../widgets/password_change_dialog.dart';
 import 'register_page.dart';
-import '../main/main_app.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -178,8 +177,12 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                 );
               } else {
-                // Normal login flow - go to main app
-                debugPrint('✅ Normal login, proceeding to main app');
+                // Normal login flow - navigation will happen automatically via AuthWrapper
+                debugPrint(
+                  '✅ Normal login, navigation will happen automatically',
+                );
+
+                // Show brief success message - AuthWrapper will handle navigation
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: const Row(
@@ -191,7 +194,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         SizedBox(width: 12),
                         Text(
-                          'Welcome back! Login successful 🎉',
+                          'Login successful! Redirecting... 🎉',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 14,
@@ -205,18 +208,10 @@ class _LoginPageState extends State<LoginPage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    duration: const Duration(seconds: 2),
+                    duration: const Duration(milliseconds: 1000),
                     margin: const EdgeInsets.all(16),
                   ),
                 );
-                final navigator = Navigator.of(context);
-                Future.delayed(const Duration(milliseconds: 500), () {
-                  if (!mounted) return;
-                  navigator.pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const MainApp()),
-                    (route) => false,
-                  );
-                });
               }
             } else if (state is AuthLoading) {
               debugPrint('⏳ Authentication in progress');
