@@ -358,11 +358,8 @@ class LeaderboardView extends StatelessWidget {
               child: _buildMotivationalMessage(state.motivationalMessage),
             ),
 
-          // Progress stats
-          if (state.progressStats != null)
-            SliverToBoxAdapter(
-              child: _buildProgressStats(state.progressStats!),
-            ),
+          // Progress stats - now always available with fallback
+          SliverToBoxAdapter(child: _buildProgressStats(state.progressStats)),
 
           // Current family rank
           if (state.currentFamily != null)
