@@ -563,16 +563,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        // Family Name
-                        Text(
-                          familyName,
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            letterSpacing: -0.5,
-                          ),
-                          overflow: TextOverflow.ellipsis,
+                        // Family Name with Star
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                familyName,
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  letterSpacing: -0.5,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            // Star with count
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.star_rounded,
+                                    color: Color(0xFFFBBF24),
+                                    size: 16,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '$totalFamilyStars',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 14,
+                                      letterSpacing: -0.2,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -585,17 +626,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               // Stats Row
               Row(
                 children: [
-                  // Family Stars
-                  Expanded(
-                    child: _buildFamilyStatCard(
-                      icon: Icons.star_rounded,
-                      value: '$totalFamilyStars',
-                      label: 'Family Stars',
-                      color: const Color(0xFFFBBF24), // Yellow
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-
                   // User Coins
                   Expanded(
                     child: _buildFamilyStatCard(

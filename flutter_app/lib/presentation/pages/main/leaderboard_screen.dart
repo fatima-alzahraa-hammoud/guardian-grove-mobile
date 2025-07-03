@@ -767,12 +767,12 @@ class LeaderboardView extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
+                  horizontal: 12,
+                  vertical: 8,
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: Colors.white.withValues(alpha: 0.2),
                   ),
@@ -783,29 +783,19 @@ class LeaderboardView extends StatelessWidget {
                     const Icon(
                       Icons.star_rounded,
                       color: Color(0xFFFBBF24),
-                      size: 20,
+                      size: 16,
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Text(
                       '${currentFamily.stars}',
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w800,
-                        fontSize: 18,
+                        fontSize: 16,
                         letterSpacing: -0.2,
                       ),
                     ),
                   ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                '${currentFamily.totalPoints} points',
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.8),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.2,
                 ),
               ),
             ],
