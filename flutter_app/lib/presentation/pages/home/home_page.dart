@@ -1176,40 +1176,43 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Widget _buildFamilyFeaturesGrid(BuildContext context, HomeLoaded? state) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildFeatureCard(
-            icon: Icons.account_tree_rounded,
-            title: 'Family Tree',
-            subtitle: 'Explore your heritage',
-            color: const Color(0xFF10B981),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const FamilyTreeScreen(),
-                ),
-              );
-            },
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: _buildFeatureCard(
+              icon: Icons.account_tree_rounded,
+              title: 'Family Tree',
+              subtitle: 'Explore your heritage',
+              color: const Color(0xFF10B981),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const FamilyTreeScreen(),
+                  ),
+                );
+              },
+            ),
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildFeatureCard(
-            icon: Icons.auto_stories_rounded,
-            title: 'Family Journal',
-            subtitle: 'Share memories',
-            color: const Color(0xFF8B5CF6),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const FamilyJournalScreen(),
-                ),
-              );
-            },
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildFeatureCard(
+              icon: Icons.auto_stories_rounded,
+              title: 'Family Journal',
+              subtitle: 'Share memories',
+              color: const Color(0xFF8B5CF6),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const FamilyJournalScreen(),
+                  ),
+                );
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -1566,8 +1569,8 @@ class _HomeViewState extends State<HomeView> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          height: 120,
-          padding: const EdgeInsets.all(20),
+          constraints: const BoxConstraints(minHeight: 120),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
@@ -1582,6 +1585,7 @@ class _HomeViewState extends State<HomeView> {
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Container(
                 width: 40,
@@ -1592,18 +1596,30 @@ class _HomeViewState extends State<HomeView> {
                 ),
                 child: Icon(icon, color: color, size: 20),
               ),
-              const Spacer(),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1A202C),
+              const SizedBox(height: 12),
+              Flexible(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1A202C),
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              Text(
-                subtitle,
-                style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+              const SizedBox(height: 4),
+              Flexible(
+                child: Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF64748B),
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),

@@ -321,16 +321,74 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Name with beautiful typography
-                    Text(
-                      currentUser!.name,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF1A202C),
-                        letterSpacing: -0.5,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+                    // Name with edit button on the same line
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            currentUser!.name,
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF1A202C),
+                              letterSpacing: -0.5,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Edit Profile Button moved here
+                        GestureDetector(
+                          onTap: () async {
+                            if (currentUser == null) return;
+                            // Navigate to EditProfileScreen
+                            final isParent = _isCurrentUserParent();
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => EditProfileScreen(
+                                      user: currentUser!,
+                                      familyName: homeData?.familyName ?? '',
+                                      familyAvatar:
+                                          homeData?.familyAvatar ?? '',
+                                      isParent: isParent,
+                                      onConfirm: (data) {
+                                        _refreshUserData();
+                                        _fetchFamilyMembersDirect();
+                                      },
+                                    ),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF0EA5E9), Color(0xFF0284C7)],
+                              ),
+                              borderRadius: BorderRadius.circular(14),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFF0EA5E9,
+                                  ).withValues(alpha: 0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.edit_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 8),
                     // Beautiful role badge
@@ -371,53 +429,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                   ],
-                ),
-              ),
-
-              // Edit Profile Button
-              GestureDetector(
-                onTap: () async {
-                  if (currentUser == null) return;
-                  // Navigate to EditProfileScreen
-                  final isParent = _isCurrentUserParent();
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (context) => EditProfileScreen(
-                            user: currentUser!,
-                            familyName: homeData?.familyName ?? '',
-                            familyAvatar: homeData?.familyAvatar ?? '',
-                            isParent: isParent,
-                            onConfirm: (data) {
-                              _refreshUserData();
-                              _fetchFamilyMembersDirect();
-                            },
-                          ),
-                    ),
-                  );
-                },
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF0EA5E9), Color(0xFF0284C7)],
-                    ),
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF0EA5E9).withValues(alpha: 0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.edit_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
                 ),
               ),
             ],
