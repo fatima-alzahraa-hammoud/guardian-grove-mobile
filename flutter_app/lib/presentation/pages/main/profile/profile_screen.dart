@@ -20,7 +20,6 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   UserModel? currentUser;
   HomeData? homeData;
-  bool _isDropdownExpanded = false;
 
   // Direct backend family members
   List<FamilyMember>? _backendFamilyMembers;
@@ -38,12 +37,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // Get current user from storage
     currentUser = StorageService.getUser();
     setState(() {});
-  }
-
-  void _toggleDropdown() {
-    setState(() {
-      _isDropdownExpanded = !_isDropdownExpanded;
-    });
   }
 
   String _formatDate(DateTime date) {
@@ -131,80 +124,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
           },
           child: Padding(
             padding: const EdgeInsets.all(24.0),
-            child: Column(
-              children: [
-                // Header with settings dropdown
-                _buildHeader(),
-                const SizedBox(height: 24),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  // User Info Card with Edit Button
+                  _buildUserInfoCard(),
+                  const SizedBox(height: 16),
 
-                // Main profile content
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        // User Info Card with Edit Button
-                        _buildUserInfoCard(),
-                        const SizedBox(height: 16),
+                  // Family Stats Card (redesigned with app theme)
+                  _buildRedesignedFamilyCard(),
+                  const SizedBox(height: 24),
 
-                        // Family Stats Card (redesigned with app theme)
-                        _buildRedesignedFamilyCard(),
-                        const SizedBox(height: 24),
-
-                        // Family Members Section (horizontal scrolling with real avatars)
-                        _buildHorizontalFamilyMembersSection(),
-                        const SizedBox(height: 40),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+                  // Family Members Section (horizontal scrolling with real avatars)
+                  _buildHorizontalFamilyMembersSection(),
+                  const SizedBox(height: 40),
+                ],
+              ),
             ),
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Text(
-          'Profile',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF1A202C),
-          ),
-        ),
-        // Settings dropdown button
-        GestureDetector(
-          onTap: _toggleDropdown,
-          child: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Icon(
-              _isDropdownExpanded
-                  ? Icons.keyboard_arrow_up_rounded
-                  : Icons.keyboard_arrow_down_rounded,
-              color: const Color(0xFF64748B),
-              size: 20,
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -490,6 +429,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         String familyName = 'Your Family';
         String familyAvatar = '';
         int totalFamilyStars = 0;
+
+        // Get user data directly from storage like in home screen
         int userCoins = currentUser?.coins ?? 0;
         int userRank = currentUser?.rankInFamily ?? 0;
 
@@ -507,21 +448,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             familyAvatar = familyAvatar.substring(1);
           }
 
-          // Try to get user's individual stats from family members
-          final currentUserId = currentUser?.id;
-          if (currentUserId != null) {
-            try {
-              final userMember = homeData.familyMembers.firstWhere(
-                (member) => member.id == currentUserId,
-              );
-              // Update with member-specific data if available
-              userCoins = userMember.coins;
-              userRank = userMember.rankInFamily;
-            } catch (e) {
-              // User not found in family members, use current user data
-              debugPrint('User not found in family members, using stored data');
-            }
-          }
+          // Keep using currentUser data for coins and rank (like home screen)
+          // Don't override with potentially stale family member data
         }
 
         Widget buildFamilyAvatar() {
