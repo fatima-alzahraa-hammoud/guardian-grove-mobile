@@ -589,14 +589,31 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen>
   }
 
   void _openChat(Chat chat) {
-    // TODO: Implement opening specific chat
+    // Show loading state temporarily
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Opening chat: ${chat.title}'),
+        content: Row(
+          children: [
+            const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text('Loading ${chat.title}...'),
+          ],
+        ),
         backgroundColor: AppColors.primaryTeal,
         behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 1),
       ),
     );
+
+    // Navigate back to AI assistant screen and pass the chat to load
+    Navigator.of(context).pop(chat); // Return the chat to the previous screen
   }
 
   String _formatDate(DateTime date) {

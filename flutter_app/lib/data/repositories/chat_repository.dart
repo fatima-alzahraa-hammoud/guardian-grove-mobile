@@ -22,6 +22,16 @@ class ChatRepository {
     }
   }
 
+  // NEW: Get specific chat by ID
+  Future<Chat?> getChatById(String chatId) async {
+    try {
+      _getAuthToken(); // Verify token exists
+      return await _chatService.getChatById(chatId);
+    } catch (e) {
+      throw Exception('Error loading chat: ${e.toString()}');
+    }
+  }
+
   Future<Chat> createChat({required String title, String? firstMessage}) async {
     try {
       _getAuthToken(); // Verify token exists
@@ -42,13 +52,13 @@ class ChatRepository {
   }) async {
     try {
       _getAuthToken(); // Verify token exists
-      
+
       final request = ChatRequest(
         message: message,
         chatId: chatId,
         metadata: {'isCall': isCall},
       );
-      
+
       return await _chatService.sendMessage(request);
     } catch (e) {
       throw Exception('Error sending message: ${e.toString()}');
@@ -152,13 +162,13 @@ class ChatRepository {
 
   List<Chat> _filterChatsByDate(List<Chat> chats, ChatHistoryFilter filter) {
     final now = DateTime.now();
-    
+
     return chats.where((chat) {
       switch (filter) {
         case ChatHistoryFilter.today:
           return chat.updatedAt.day == now.day &&
-                 chat.updatedAt.month == now.month &&
-                 chat.updatedAt.year == now.year;
+              chat.updatedAt.month == now.month &&
+              chat.updatedAt.year == now.year;
         case ChatHistoryFilter.lastWeek:
           return now.difference(chat.updatedAt).inDays <= 7;
         case ChatHistoryFilter.lastMonth:

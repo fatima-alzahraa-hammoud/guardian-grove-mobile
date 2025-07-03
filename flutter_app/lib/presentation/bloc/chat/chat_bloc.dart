@@ -14,6 +14,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<ChatInitialized>(_onChatInitialized);
     on<ChatMessageSent>(_onChatMessageSent);
     on<ChatCleared>(_onChatCleared);
+    on<ChatSpecificLoaded>(_onChatSpecificLoaded); // NEW: Load specific chat
     on<ChatHistoryRequested>(_onChatHistoryRequested);
     on<AIFeatureRequested>(_onAIFeatureRequested); // NEW: AI Features
   }
@@ -179,6 +180,70 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       // Still clear even if save fails
       _currentChatId = null;
       _showWelcomeMessage(emit);
+    }
+  }
+
+  Future<void> _onChatSpecificLoaded(
+    ChatSpecificLoaded event,
+    Emitter<ChatState> emit,
+  ) async {
+    try {
+      debugPrint('📖 Loading specific chat: ${event.chatId}');
+
+      Chat? targetChat;
+
+      // First, try to find the chat in our local cache
+      try {
+        targetChat = _allChats.firstWhere((chat) => chat.id == event.chatId);
+        debugPrint('✅ Found chat in local cache');
+      } catch (e) {
+        // Chat not found locally, try to fetch from backend
+        debugPrint('🔍 Chat not found locally, fetching from backend...');
+
+        try {
+          // Try to get the specific chat by ID first
+          targetChat = await _chatRepository.getChatById(event.chatId);
+
+          if (targetChat != null) {
+            // Add to local cache
+            if (!_allChats.any((chat) => chat.id == targetChat!.id)) {
+              _allChats.insert(0, targetChat);
+            }
+            debugPrint('✅ Found chat via getChatById');
+          }
+        } catch (e) {
+          debugPrint('⚠️ getChatById failed, trying getChats: $e');
+        }
+
+        // If getChatById failed, try fetching all chats and finding the one we need
+        if (targetChat == null) {
+          final chats = await _chatRepository.getChats();
+          _allChats = chats;
+
+          targetChat = _allChats.firstWhere((chat) => chat.id == event.chatId);
+          debugPrint('✅ Found chat via getChats fallback');
+        }
+      }
+
+      // Set this as the current chat
+      _currentChatId = targetChat.id;
+
+      // Load all messages from this chat
+      emit(
+        ChatLoaded(
+          messages: targetChat.messages,
+          activeChatId: _currentChatId,
+          chatHistory: _allChats,
+          historyLoaded: true,
+          isLoading: false,
+        ),
+      );
+
+      debugPrint('✅ Successfully loaded chat: ${targetChat.title}');
+      debugPrint('📝 Chat has ${targetChat.messages.length} messages');
+    } catch (e) {
+      debugPrint('❌ Error loading specific chat: $e');
+      emit(ChatError('Failed to load chat: ${e.toString()}'));
     }
   }
 

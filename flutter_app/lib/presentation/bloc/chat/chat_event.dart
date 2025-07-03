@@ -18,6 +18,14 @@ class ChatMessageSent extends ChatEvent {
 
 class ChatCleared extends ChatEvent {}
 
+// ADDED: Event to load a specific chat by ID
+class ChatSpecificLoaded extends ChatEvent {
+  final String chatId;
+  const ChatSpecificLoaded(this.chatId);
+  @override
+  List<Object> get props => [chatId];
+}
+
 class ChatHistoryRequested extends ChatEvent {}
 
 class ChatHistoryLoaded extends ChatEvent {
@@ -37,10 +45,10 @@ class AIFeatureRequested extends ChatEvent {
 
 // ADDED: Enum for AI Features (matching your backend)
 enum AIFeatureType {
-  growthPlans,      // /users/generatePlan
-  learningZone,     // /users/generateLearningZone  
-  trackDay,         // /users/generateTrackDay
-  story,            // /users/generateStory
-  viewTasks,        // /users/generateViewTasks
-  quickTip,         // /users/generateQuickTip
+  growthPlans, // /users/generatePlan
+  learningZone, // /users/generateLearningZone
+  trackDay, // /users/generateTrackDay
+  story, // /users/generateStory
+  viewTasks, // /users/generateViewTasks
+  quickTip, // /users/generateQuickTip
 }

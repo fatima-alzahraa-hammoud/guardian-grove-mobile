@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../data/models/chat_models.dart'; // Added for Chat model
 import '../../../../injection_container.dart' as di;
 import '../../../bloc/chat/chat_bloc.dart';
 import '../../../bloc/chat/chat_event.dart';
@@ -193,12 +194,21 @@ class _AIAssistantViewState extends State<AIAssistantView>
           BlocBuilder<ChatBloc, ChatState>(
             builder: (context, state) {
               return GestureDetector(
-                onTap:
-                    () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const ChatHistoryScreen(),
-                      ),
+                onTap: () async {
+                  // Navigate to chat history and wait for result
+                  final selectedChat = await Navigator.of(context).push<Chat>(
+                    MaterialPageRoute(
+                      builder: (context) => const ChatHistoryScreen(),
                     ),
+                  );
+
+                  // If a chat was selected, load it
+                  if (selectedChat != null && context.mounted) {
+                    context.read<ChatBloc>().add(
+                      ChatSpecificLoaded(selectedChat.id),
+                    );
+                  }
+                },
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(

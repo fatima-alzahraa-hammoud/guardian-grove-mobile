@@ -5,10 +5,11 @@ import '../../data/models/chat_models.dart';
 abstract class ChatService {
   Future<ChatResponse> sendMessage(ChatRequest request);
   Future<List<Chat>> getChats();
+  Future<Chat?> getChatById(String chatId); // NEW: Get specific chat by ID
   Future<Chat?> createNewChat({String? firstMessage});
   Future<bool> deleteChat(String chatId);
   Future<bool> renameChat(String chatId, String newTitle);
-  
+
   // AI Feature Methods
   Future<String> generateGrowthPlans();
   Future<String> generateLearningZone();
@@ -38,16 +39,13 @@ class ChatServiceImpl implements ChatService {
       try {
         // Step 1: Create new chat if no chatId provided
         String? chatId = request.chatId;
-        
+
         if (chatId == null || chatId.isEmpty) {
           final newChatResponse = await _apiClient.post(
-            '/chats/', 
-            data: {
-              'sender': 'user',
-              'message': request.message,
-            },
+            '/chats/',
+            data: {'sender': 'user', 'message': request.message},
           );
-          
+
           if (newChatResponse.statusCode == 200) {
             final newChat = Chat.fromJson(newChatResponse.data['chat']);
             chatId = newChat.id;
@@ -69,9 +67,11 @@ class ChatServiceImpl implements ChatService {
 
         if (response.statusCode == 200) {
           final responseData = response.data;
-          
+
           return ChatResponse(
-            message: responseData['aiResponse']?['content'] ?? 'No response received',
+            message:
+                responseData['aiResponse']?['content'] ??
+                'No response received',
             success: true,
             chatId: chatId,
             metadata: {
@@ -120,17 +120,17 @@ class ChatServiceImpl implements ChatService {
     } else {
       try {
         final response = await _apiClient.get('/chats/getChats');
-        
+
         if (response.statusCode == 200) {
           final responseData = response.data;
-          
+
           List<dynamic> chatsData = [];
           if (responseData['chats'] != null) {
             chatsData = responseData['chats'];
           } else if (responseData is List) {
             chatsData = responseData;
           }
-          
+
           return chatsData.map((chatData) => Chat.fromJson(chatData)).toList();
         } else {
           return [];
@@ -142,15 +142,46 @@ class ChatServiceImpl implements ChatService {
   }
 
   @override
+  Future<Chat?> getChatById(String chatId) async {
+    if (useMockData) {
+      // Return mock chat
+      return Chat(
+        id: chatId,
+        userId: 'user123',
+        title: 'Mock Chat',
+        messages: [ChatMessage.bot("This is a mock chat with ID: $chatId")],
+        createdAt: DateTime.now().subtract(const Duration(days: 1)),
+        updatedAt: DateTime.now(),
+      );
+    } else {
+      try {
+        final response = await _apiClient.post(
+          '/chats/getChatById',
+          data: {'chatId': chatId},
+        );
+
+        if (response.statusCode == 200) {
+          final responseData = response.data;
+
+          if (responseData['chat'] != null) {
+            return Chat.fromJson(responseData['chat']);
+          }
+        }
+        return null;
+      } catch (e) {
+        throw Exception('Error getting chat by ID: $e');
+      }
+    }
+  }
+
+  @override
   Future<Chat?> createNewChat({String? firstMessage}) async {
     if (useMockData) {
       return Chat(
         id: 'chat_${DateTime.now().millisecondsSinceEpoch}',
         userId: 'user123',
         title: 'New Chat',
-        messages: firstMessage != null 
-          ? [ChatMessage.user(firstMessage)]
-          : [],
+        messages: firstMessage != null ? [ChatMessage.user(firstMessage)] : [],
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -158,10 +189,7 @@ class ChatServiceImpl implements ChatService {
       try {
         final response = await _apiClient.post(
           '/chats/',
-          data: {
-            'sender': 'user',
-            'message': firstMessage ?? 'Hello!',
-          },
+          data: {'sender': 'user', 'message': firstMessage ?? 'Hello!'},
         );
 
         if (response.statusCode == 200) {
@@ -200,10 +228,7 @@ class ChatServiceImpl implements ChatService {
       try {
         final response = await _apiClient.put(
           '/chats/rename',
-          data: {
-            'chatId': chatId,
-            'title': newTitle,
-          },
+          data: {'chatId': chatId, 'title': newTitle},
         );
         return response.statusCode == 200;
       } catch (e) {
@@ -348,7 +373,8 @@ class ChatServiceImpl implements ChatService {
     if (useMockData) {
       return {
         'title': 'Stay Curious!',
-        'message': 'Ask questions about everything around you - curiosity is the key to learning! 🔍✨',
+        'message':
+            'Ask questions about everything around you - curiosity is the key to learning! 🔍✨',
       };
     } else {
       try {
